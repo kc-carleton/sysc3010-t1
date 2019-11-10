@@ -1,5 +1,5 @@
 from hashlib import sha256
-from keypad_library import keypad
+from matrixKeypad_RPi_GPIO import keypad
 from time import sleep
 
 
@@ -13,17 +13,20 @@ def read_keypad():
     keys = []
     
     # Get 9 key presses: 4 digit user code, 4 digit passcode, 1 digit safe number.
-    for i in range(9):
+    count = 0
+    while count != 3:
         keypress = get_digit()
-        print(keypress)
+        if keypress == '#':
+            count += 1
         keys.append(keypress)
         sleep(0.5)
     
-    user_code = str(keys[0]) + str(keys[1]) + str(keys[2] + str(keys[3])
-    passcode = str(keys[4]) + str(keys[5]) + str(keys[6]) + str(keys[7])
-    safe_number = str(keys[8])
+    print(verify_user_credentials(keys))
+    #user_code = str(keys[0]) + str(keys[1]) + str(keys[2]) + str(keys[3])
+    #passcode = str(keys[4]) + str(keys[5]) + str(keys[6]) + str(keys[7])
+    #safe_number = str(keys[8])
 
-    return (user_code, passcode, safe_number)
+    #return (user_code, passcode, safe_number)
 
 
 def get_digit():
@@ -57,8 +60,16 @@ def receive_udp_ack():
 
 def verify_user_credentials(user_credentials):
     '''Verify user credentials match with expected format for credentials.'''
+    if len(user_credentials) >= 12:
+        if user_credentials[4] == '#' and user_credentials[9] == '#' and user_credentials[-1] == '#':
+            user_code = user_credentials[0:4]
+            passcode = user_credentials[5:9]
+            safe_number = user_credentials[10:-1]
+            if (all(isinstance(item, int) for item in user_code) and 
+                    all(isinstance(item, int) for item in passcode) and 
+                    all(isinstance(item, int) for item in safe_number)):
+                return True
     return False
 
 
-hash_passcode('hello')
-
+read_keypad()
