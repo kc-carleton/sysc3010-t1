@@ -1,4 +1,4 @@
-#from enum import Enum
+from enum import Enum
 import socket
 
 
@@ -103,7 +103,7 @@ def decode_error(encoded):
     return data[1]
 
 
-class PacketType():
+class PacketType(Enum):
     DATA = 'DATA'
     ACK = 'ACK'
     COMMAND = 'COMMAND'
