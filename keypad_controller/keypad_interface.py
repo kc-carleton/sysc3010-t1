@@ -21,12 +21,16 @@ def read_keypad():
         keys.append(keypress)
         sleep(0.5)
     
-    print(verify_user_credentials(keys))
-    #user_code = str(keys[0]) + str(keys[1]) + str(keys[2]) + str(keys[3])
-    #passcode = str(keys[4]) + str(keys[5]) + str(keys[6]) + str(keys[7])
-    #safe_number = str(keys[8])
+    #print(verify_user_credentials(keys))
+    if !verify_user_credentials(keys):
+        print('Invalid user credential format')
+        return
 
-    #return (user_code, passcode, safe_number)
+    user_code = keys[0:4]
+    passcode = keys[5:9]
+    safe_number = [10:-1]
+
+    return (user_code, passcode, safe_number)
 
 
 def get_digit():
