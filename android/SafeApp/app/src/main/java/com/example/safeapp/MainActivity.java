@@ -2,12 +2,10 @@ package com.example.safeapp;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -37,6 +35,9 @@ public class MainActivity extends AppCompatActivity {
         info.setText("Please login!");
         login_fail_counter = 0;
 
+        validateLogin(ADMIN_USERNAME, ADMIN_PASSWORD);
+
+
         login.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -50,7 +51,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void validateLogin(String un, String pw) {
         if(un.equals(ADMIN_USERNAME) && pw.equals(ADMIN_PASSWORD)) {
-            Intent intent = new Intent(MainActivity.this, adminControls.class);
+            Intent intent = new Intent(MainActivity.this, AdminControls.class);
             startActivity(intent);
         } else {
             login_fail_counter += 1;
