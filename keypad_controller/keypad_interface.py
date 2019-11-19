@@ -27,11 +27,11 @@ def read_keypad():
         print('Invalid user credential format')
         return
 
-    user_code = keys[0:4]
-    passcode = keys[5:9]
-    safe_number = keys[10:-1]
+    user_code = convert_to_str(keys[0:4], '')
+    passcode = convert_to_str(keys[5:9], '')
+    safe_number = convert_to_str(keys[10:-1], '')
 
-    return (user_code, passcode, safe_number)
+    return (user_code, hash_passcode(passcode), safe_number)
 
 
 def get_digit():
@@ -62,11 +62,11 @@ def set_LED(success):
     #if success
     if success is True:
         GPIO.output(5, GPIO.HIGH)
-        time.sleep(1)
+        sleep(1)
         GPIO.output(5, GPIO.LOW)
     else:
         GPIO.output(6, GPIO.HIGH)
-        time.sleep(1)
+        sleep(1)
         GPIO.output(6, GPIO.LOW)
 
 
@@ -103,4 +103,11 @@ def verify_user_credentials(user_credentials):
     set_LED(False)
     return False
 
+
+def convert_to_str(input_seq, seperator):
+    return seperator.join([str(elem) for elem in input_seq])
+
+#while True:
+#    user_code, hashed_passcode, safe_number = read_keypad()
+#    send_user_data_udp(user_code, hashed_passcode, safe_number, '192.168.1.134', 10000)
 
