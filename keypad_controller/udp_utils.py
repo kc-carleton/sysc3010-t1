@@ -31,10 +31,14 @@ def decode_data(encoded):
     PARAM encoded: a byte array representing the data in the DATA packet.
     RETURN a string representing the data which was sent in the DATA packet.'''
     if encoded is None:
-        return None
+        return None, 'empty_packet'
+    if encoded[-1] != '\0':
+        return None, 'no_null_termination'
     data = encoded.decode('utf-8').split('\0')
     if data[0] != 'DATA':
-        return None, 'Not a data packet'
+        return None, 'incorrect_data_opcode'
+    if data[1] == '':
+        return None, 'no_json_data'
     return data[1], ''
 
 
@@ -45,12 +49,16 @@ def create_ack(ack_type):
 
 def decode_ack(encoded):
     if encoded is None or len(encoded) < 6:
-        return None
+        return None, 'empty_packet'
+    if encoded[-1] != '\0':
+        return None, 'no_null_termination'
     data = encoded.decode('utf-8').split('\0')
     if data[0] != 'ACK':
-        return None, 'Not an ACK packet'
+        return None, 'incorrect_ack_opcode'
+    if len(data) == 0:
+        return None, 'no_command'
     if len(data) != 3:
-        return None, 'byte array format is incorrect'
+        return None, 'inavlid_command'
     return data[1]
 
 
@@ -65,7 +73,7 @@ def create_command(cmd):
 
 def decode_command(encoded):
     if encoded is None:
-        return None
+        return None, 'empty_packet'
     data = encoded.decode('utf-8').split('\0')
     if data[0] != 'COMMAND':
         return None, 'Not a COMMAND packet'
@@ -87,7 +95,7 @@ def create_error(error_message):
 
 def decode_error(encoded):
     if encoded is None:
-        return None
+        return None, 'empty_packet'
     data = encoded.decode('utf-8').split('\0')
     if data[0] != 'ERROR':
         return None, 'Not an ERROR packet'
