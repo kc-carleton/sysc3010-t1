@@ -1,10 +1,13 @@
-import thread
+import threading
 from firebase import firebase
 import json
+from udp_utils import *
 
 firebase = firebase.FirebaseApplication('https://sysc3010-t1.firebaseio.com/', None)
 kc_port = 5
 dc_port = 5
+kc_address = ''
+dc_address = ''
 
 def check_database_authentication(user_cred):
    result = firebase.get('/users', None) 
@@ -54,7 +57,6 @@ def send_error_kc(error_message):
 def start_open_door_action():
     command = create_command(True)
 
-
 def wait_dc_ack(safe):
     buf, address = receive_pkt(thread_port)
     ack, error = decode_ack(buf)
@@ -76,6 +78,17 @@ def action_thread(safe, hashed_passcode, user_code, sender_port, sender_ip):
 
     send_pkt(ack_kc, address_kc, kc_port)
 
+class ActionThread(threading.Thread):
+    def __init__(self, safe, hashed_passcode, user_name, sender_port, sender_ip):
+        self.safe = safe
+        self.hashed_passcode = hashed_passcode
+        self.user_name = user_name
+        self.sender_port = sender_port
+        self.sender_ip = sender_ip
+
+    def run(self):
+        action_thread(self.safe, self.hashed_passcode, self.user_code, self.sender_port, self.sender_ip)
+
 
 class PortListener:
 
@@ -95,7 +108,8 @@ class PortListener:
     
     def spawn_action_thread(self, sender_port, sender_ip, received_message):
         # Listen port will call this to spawn a thread using multiprocessing
-        thread.start_new_thread(action_thread, (received_message['safe'], received_message['hashed_passcode'], received_message['user_name'], sender_port, sender_ip, )
+        thread = ActionThread(received_message['safe'], received_message['hashed_passcode'], received_message['user_name'], sender_port, sender_ip)
+        thread.start()
 
 
 def main():
@@ -105,5 +119,5 @@ def main():
 if __name__ == '__main__':
     main()
 
-print(check_database_authentication({'user_name':'michael', 'hashed_passcode': '3973', 'safe': 1}))
+#print(check_database_authentication({'user_name':'michael', 'hashed_passcode': '3973', 'safe': 1}))
 #update_database_logs('michael', 627262, 1, True)
