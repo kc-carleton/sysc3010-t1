@@ -22,7 +22,7 @@ def create_data(json_data):
     RETURN a byte array representing the data in the DATA packet to be sent.'''
     if json_data is None:
         return None
-    data = 'DATA\0{}\0'.format(str(json_data))
+    data = '{}\0{}\0'.format(PacketType.DATA.value, str(json_data))
     return data.encode()
 
 
@@ -35,7 +35,7 @@ def decode_data(encoded):
     if encoded[-1] != '\0':
         return None, 'no_null_termination'
     data = encoded.decode('utf-8').split('\0')
-    if data[0] != 'DATA':
+    if data[0] != PacketType.DATA.value:
         return None, 'incorrect_data_opcode'
     if data[1] == '':
         return None, 'no_json_data'
@@ -43,7 +43,7 @@ def decode_data(encoded):
 
 
 def create_ack(ack_type):
-    data = 'ACK\0{}\0'.format(str(ack_type.value))
+    data = '{}\0{}\0'.format(PacketType.ACK.value, str(ack_type.value))
     return data.encode()
 
 
@@ -53,7 +53,7 @@ def decode_ack(encoded):
     if encoded[-1] != '\0':
         return None, 'no_null_termination'
     data = encoded.decode('utf-8').split('\0')
-    if data[0] != 'ACK':
+    if data[0] != PacketType.ACK.value:
         return None, 'incorrect_ack_opcode'
     if len(data) == 0:
         return None, 'no_command'
@@ -67,7 +67,7 @@ def create_command(cmd):
         return None
     elif len(cmd) == 0:
         return None
-    data = 'COMMAND\0{}\0'.format(str(cmd))
+    data = '{}\0{}\0'.format(PacketType.COMMAND.value, str(cmd))
     return data.encode()
 
 
@@ -75,7 +75,7 @@ def decode_command(encoded):
     if encoded is None:
         return None, 'empty_packet'
     data = encoded.decode('utf-8').split('\0')
-    if data[0] != 'COMMAND':
+    if data[0] != PacketType.COMMAND.value:
         return None, 'Not a COMMAND packet'
     if len(data) != 3:
         return None, 'byte array format is incorrect'
@@ -89,7 +89,7 @@ def create_error(error_message):
         return None
     elif len(error_message) == 0:
         return None
-    data = 'ERROR\0{}\0'.format(str(error_message))
+    data = '{}\0{}\0'.format(PacketType.ERROR.value, str(error_message))
     return data.encode()
 
 
@@ -97,7 +97,7 @@ def decode_error(encoded):
     if encoded is None:
         return None, 'empty_packet'
     data = encoded.decode('utf-8').split('\0')
-    if data[0] != 'ERROR':
+    if data[0] != PacketType.ERROR.value:
         return None, 'Not an ERROR packet'
     if len(data) != 3:
         return None, 'byte array format is incorrect'
@@ -105,9 +105,9 @@ def decode_error(encoded):
 
 
 class PacketType(Enum):
-    DATA = 'DATA'
-    ACK = 'ACK'
-    COMMAND = 'COMMAND'
-    ERROR = 'ERROR'
+    DATA = '0x01'
+    ACK = '0x02'
+    COMMAND = '0x03'
+    ERROR = '0x04'
 
 
