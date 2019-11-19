@@ -34,9 +34,8 @@ def decode_data(encoded):
         return None
     data = encoded.decode('utf-8').split('\0')
     if data[0] != 'DATA':
-        print('Not a data packet')
-        return None
-    return data[1]
+        return None, 'Not a data packet'
+    return data[1], ''
 
 
 def create_ack(ack_type):
@@ -49,11 +48,9 @@ def decode_ack(encoded):
         return None
     data = encoded.decode('utf-8').split('\0')
     if data[0] != 'ACK':
-        print('Not an ACK packet')
-        return None
+        return None, 'Not an ACK packet'
     if len(data) != 3:
-        print('byte array format is incorrect')
-        return None
+        return None, 'byte array format is incorrect'
     return data[1]
 
 
@@ -71,14 +68,12 @@ def decode_command(encoded):
         return None
     data = encoded.decode('utf-8').split('\0')
     if data[0] != 'COMMAND':
-        print('Not a COMMAND packet')
-        return None
+        return None, 'Not a COMMAND packet'
     if len(data) != 3:
-        print('byte array format is incorrect')
-        return None
+        return None, 'byte array format is incorrect'
     if len(data[1]) == 0:
-        return None
-    return data[1]
+        return None, 'Command field is empty'
+    return data[1], ''
 
 
 def create_error(error_message):
@@ -95,12 +90,10 @@ def decode_error(encoded):
         return None
     data = encoded.decode('utf-8').split('\0')
     if data[0] != 'ERROR':
-        print('Not an ERROR packet')
-        return None
+        return None, 'Not an ERROR packet'
     if len(data) != 3:
-        print('byte array format is incorrect')
-        return None
-    return data[1]
+        return None, 'byte array format is incorrect'
+    return data[1], ''
 
 
 class PacketType(Enum):
