@@ -1,7 +1,8 @@
 from hashlib import sha256
-from matrixKeypad_RPi_GPIO import keypad
+from keypad_library import keypad
 from time import sleep
-
+import udp_utils as utils
+import RPi.GPIO as GPIO
 
 kp = keypad()
 
@@ -21,20 +22,20 @@ def read_keypad():
         keys.append(keypress)
         sleep(0.5)
     
-    #print(verify_user_credentials(keys))
-    if !verify_user_credentials(keys):
+    # Verify the users credentials before continuing.
+    if verify_user_credentials(keys) is False:
         print('Invalid user credential format')
         return
 
     user_code = keys[0:4]
     passcode = keys[5:9]
-    safe_number = [10:-1]
+    safe_number = keys[10:-1]
 
     return (user_code, passcode, safe_number)
 
 
 def get_digit():
-    # poll for key press
+    '''poll for key press and return the key which was pressed'''
     key = None
     while key == None:
         key = kp.getKey()
@@ -51,15 +52,40 @@ def hash_passcode(passcode):
 def set_LED(success):
     '''Set the LED to a colour based on the success parameter. If the success 
     is True, set the LED to green, otherwise set it to red.'''
+    
+    # Setup
+    GPIO.setmode(GPIO.BCM)
+    GPIO.setwarnings(False)
+    GPIO.setup(5, GPIO.OUT) # green LED
+    GPIO.setup(6, GPIO.OUT) # red LED
+
+    #if success
+    if success is True:
+        GPIO.output(5, GPIO.HIGH)
+        time.sleep(1)
+        GPIO.output(5, GPIO.LOW)
+    else:
+        GPIO.output(6, GPIO.HIGH)
+        time.sleep(1)
+        GPIO.output(6, GPIO.LOW)
 
 
-def send_user_data_udp(user_code, hashed_passcode, safe_number):
+def send_user_data_udp(user_code, hashed_passcode, safe_number, ip_addr, port):
     '''Will send a DATA packet to the Access System over UDP with the user credentials.'''
+    login_info = '{{user_code:{},hashed_passcode:{},safe_number:{}}}'.format(user_code, hashed_passcode, safe_number)
+    data_pkt = utils.create_data(login_info)
+    utils.send_pkt(data_pkt, ip_addr, port)
 
 
 def receive_udp_ack():
     '''Wait for an acknowledgment packet from the Access System.'''
-    return False
+    port = 8080
+    buf, address = utils.receive_pkt(port)
+    ack_data = utils.decode_ack(buf)
+    if ack_data is None:
+        print('Error receiving ACK packet')
+        return False
+    return True
 
 
 def verify_user_credentials(user_credentials):
@@ -72,8 +98,9 @@ def verify_user_credentials(user_credentials):
             if (all(isinstance(item, int) for item in user_code) and 
                     all(isinstance(item, int) for item in passcode) and 
                     all(isinstance(item, int) for item in safe_number)):
+                set_LED(True)
                 return True
+    set_LED(False)
     return False
 
 
-read_keypad()
