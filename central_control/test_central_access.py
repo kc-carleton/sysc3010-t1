@@ -28,19 +28,23 @@ class TestAccessSystem(unittest.TestCase):
         return True
 
     @mock.patch('udp_utils.send_pkt', return_value=True)
-    def test_normal_operation_3(self, n_send_pkt):
+    @mock.patch('udp_utils.receive_pkt')
+    def test_normal_operation_3(self, n_send_pkt, n_receive_pkt):
         test_data = {'user_name':'michael', 'hashed_passcode': '3973', 'safe': 1}
         mock_d = create_autospec(check_database_authentication, return_value=True)
 
         success = mock_d(test_data)
-        command = create_command(str(success))
-        send_pkt(command, dc_address, dc_port)
+        ack = create_ack(success)
+        n_receive_pkt.return_value = ack, ''
+        
+        unlock_safe(1, 1)
 
         return True
 
     @mock.patch('udp_utils.send_pkt', return_value=True)
+    @mock.patch('udp_utils.receive_pkt')
     @mock.patch('udp_utils.decode_ack', return_value=1)
-    def test_normal_operarion_4(self, n_send_pkt, n_decode_ack):
+    def test_normal_operarion_4(self, n_send_pkt, n_receive_pkt, n_decode_ack):
         #wait_dc_ack(1, 555)
         return True
 
@@ -207,6 +211,9 @@ class TestAccessSystem(unittest.TestCase):
 
         self.assertEqual(n_send_pkt.call_count, 1)
         self.assertEqual(n_create_error.call_count, 1)
+
+    def test_unreciprocated_command(self):
+        pass
 
 if __name__ == '__main__':
     unittest.main()

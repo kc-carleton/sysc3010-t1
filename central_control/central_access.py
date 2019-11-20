@@ -38,9 +38,9 @@ def update_database_logs(user, access_time, safe, success):
     error = firebase.post('/safes/{}'.format(safe), update)
 
 def unlock_safe(safe, thread_port):
-    command = create_command(True)
+    command = udp_utils.create_command(True)
     udp_utils.send_pkt(command, dc_address, dc_port)
-    ack = udp_utils.wait_dc_ack(safe, thread_port)
+    ack = wait_dc_ack(safe, thread_port)
 
 def send_ack_kc(success):
     ack = udp_utils.create_ack(success)

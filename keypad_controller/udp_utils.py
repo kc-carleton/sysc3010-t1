@@ -75,8 +75,6 @@ def decode_ack(encoded):
 def create_command(cmd):
     if cmd is None:
         return None
-    elif len(cmd) == 0:
-        return None
     data = '{}\0{}\0'.format(PacketType.COMMAND.value, str(cmd))
     return data.encode()
 
