@@ -1,5 +1,6 @@
 from enum import Enum
 import socket
+import json
 
 
 def send_pkt(data, ip_address, port):
@@ -32,25 +33,34 @@ def decode_data(encoded):
     RETURN a string representing the data which was sent in the DATA packet.'''
     if encoded is None:
         return None, 'empty_packet'
-    if encoded[-1] != '\0':
+    if encoded.decode('utf-8')[-1] != '\0':
         return None, 'no_null_termination'
     data = encoded.decode('utf-8').split('\0')
     if data[0] != PacketType.DATA.value:
         return None, 'incorrect_data_opcode'
     if data[1] == '':
         return None, 'no_json_data'
+    try:
+        json_data = json.loads(data[1])
+        keys = json_data.keys()
+        if len(keys) != 3:
+            raise Exception("err")
+        if 'user_name' not in keys or 'hashed_passcode' not in keys or 'safe' not in keys:
+            raise Exception("err")
+    except:
+        return None, 'incorrect_json'
     return data[1], ''
 
 
 def create_ack(ack_type):
-    data = '{}\0{}\0'.format(PacketType.ACK.value, str(ack_type.value))
+    data = '{}\0{}\0'.format(PacketType.ACK.value, str(ack_type))
     return data.encode()
 
 
 def decode_ack(encoded):
     if encoded is None or len(encoded) < 6:
         return None, 'empty_packet'
-    if encoded[-1] != '\0':
+    if encoded.decode('utf-8')[-1] != '\0':
         return None, 'no_null_termination'
     data = encoded.decode('utf-8').split('\0')
     if data[0] != PacketType.ACK.value:
