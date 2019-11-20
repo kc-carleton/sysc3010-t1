@@ -65,11 +65,11 @@ def decode_ack(encoded):
     data = encoded.decode('utf-8').split('\0')
     if data[0] != PacketType.ACK.value:
         return None, 'incorrect_ack_opcode'
-    if len(data) == 0:
+    if len(data[1]) == 0:
         return None, 'no_command'
-    if len(data) != 3:
+    if len(data[1]) != 1:
         return None, 'inavlid_command'
-    return data[1]
+    return data[1] ,''
 
 
 def create_command(cmd):
