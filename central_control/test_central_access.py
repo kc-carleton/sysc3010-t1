@@ -28,7 +28,7 @@ class TestAccessSystem(unittest.TestCase):
         return True
 
     @mock.patch('udp_utils.send_pkt', return_value=True)
-    @mock.patch('udp_utils.receive_pkt')
+    @mock.patch('udp_utils.receive_pkt', return_value=('',''))
     def test_normal_operation_3(self, n_send_pkt, n_receive_pkt):
         test_data = {'user_name':'michael', 'hashed_passcode': '3973', 'safe': 1}
         mock_d = create_autospec(check_database_authentication, return_value=True)
