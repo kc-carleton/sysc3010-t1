@@ -28,7 +28,7 @@ class TestAccessSystem(unittest.TestCase):
         return True
 
     @mock.patch('udp_utils.send_pkt', return_value=True)
-    @mock.patch('udp_utils.receive_pkt')
+    @mock.patch('udp_utils.receive_pkt', return_value=('',''))
     def test_normal_operation_3(self, n_send_pkt, n_receive_pkt):
         test_data = {'user_name':'michael', 'hashed_passcode': '3973', 'safe': 1}
         mock_d = create_autospec(check_database_authentication, return_value=True)
@@ -42,10 +42,17 @@ class TestAccessSystem(unittest.TestCase):
         return True
 
     @mock.patch('udp_utils.send_pkt', return_value=True)
-    @mock.patch('udp_utils.receive_pkt')
-    @mock.patch('udp_utils.decode_ack', return_value=1)
-    def test_normal_operarion_4(self, n_send_pkt, n_receive_pkt, n_decode_ack):
-        #wait_dc_ack(1, 555)
+    @mock.patch('udp_utils.receive_pkt', return_value=('',''))
+    def test_normal_operarion_4(self, n_send_pkt, n_receive_pkt):
+        test_data = {'user_name':'michael', 'hashed_passcode': '3973', 'safe': 2}
+        mock_d = create_autospec(check_database_authentication, return_value=True)
+
+        success = mock_d(test_data)
+        ack = create_ack(success)
+        n_receive_pkt.return_value = ack, ''
+        
+        unlock_safe(1, 1)
+
         return True
 
     @mock.patch('udp_utils.send_pkt', return_value=True)
