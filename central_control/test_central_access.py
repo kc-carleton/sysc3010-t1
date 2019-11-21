@@ -9,7 +9,7 @@ from central_access import *
 class TestAccessSystem(unittest.TestCase):
     @mock.patch('udp_utils.send_pkt', return_value=True)
     def test_normal_operation_1(self, n_send_pkt):
-        test_data = {'user_name':'michael', 'hashed_passcode': '3973', 'safe': 1}
+        test_data = {'user_code':'michael', 'hashed_passcode': '3973', 'safe_number': 1}
         mock_d = create_autospec(check_database_authentication, return_value=True)
 
         success = mock_d(test_data)
@@ -19,7 +19,7 @@ class TestAccessSystem(unittest.TestCase):
 
     @mock.patch('udp_utils.send_pkt', return_value=True)
     def test_normal_operation_2(self, n_send_pkt):
-        test_data = {'user_name':'michael', 'hashed_passcode': '3973', 'safe': 1}
+        test_data = {'user_code':'michael', 'hashed_passcode': '3973', 'safe_number': 1}
         mock_d = create_autospec(check_database_authentication, return_value=False)
 
         success = mock_d(test_data)
@@ -30,7 +30,7 @@ class TestAccessSystem(unittest.TestCase):
     @mock.patch('udp_utils.send_pkt', return_value=True)
     @mock.patch('udp_utils.receive_pkt', return_value=('',''))
     def test_normal_operation_3(self, n_send_pkt, n_receive_pkt):
-        test_data = {'user_name':'michael', 'hashed_passcode': '3973', 'safe': 1}
+        test_data = {'user_code':'michael', 'hashed_passcode': '3973', 'safe_number': 1}
         mock_d = create_autospec(check_database_authentication, return_value=True)
 
         success = mock_d(test_data)
@@ -44,7 +44,7 @@ class TestAccessSystem(unittest.TestCase):
     @mock.patch('udp_utils.send_pkt', return_value=True)
     @mock.patch('udp_utils.receive_pkt', return_value=('',''))
     def test_normal_operarion_4(self, n_send_pkt, n_receive_pkt):
-        test_data = {'user_name':'michael', 'hashed_passcode': '3973', 'safe': 2}
+        test_data = {'user_code':'michael', 'hashed_passcode': '3973', 'safe_number': 2}
         mock_d = create_autospec(check_database_authentication, return_value=True)
 
         success = mock_d(test_data)

@@ -114,7 +114,7 @@ class PortListener:
     
     def spawn_action_thread(self, sender_port, sender_ip, received_message):
         # Listen port will call this to spawn a thread using multiprocessing
-        thread = ActionThread(received_message['safe'], received_message['hashed_passcode'], received_message['user_name'], sender_port, sender_ip)
+        thread = ActionThread(received_message['safe_number'], received_message['hashed_passcode'], received_message['user_code'], sender_port, sender_ip)
         thread.start()
 
 
