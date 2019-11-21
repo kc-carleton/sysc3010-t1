@@ -7,8 +7,8 @@
 #include <SPI.h>
 
 byte macAddress[] = {0x90, 0xA2, 0xDA, 0x0F, 0x3B, 0x9D};
-IPAddress local_ip(192, 168, 123, 200);
-IPAddress AS_ip(192, 168, 123, 202);
+IPAddress local_ip(10, 1, 1, 2);
+IPAddress AS_ip(10, 1, 1, 1);
 unsigned int local_port = 161;
 unsigned int AS_port = 161;
 EthernetUDP Udp;
@@ -24,6 +24,14 @@ void setup() {
   // initialize serial communication at 9600 bits per second:
   Serial.begin(9600);
 
+  // set the sensor pin to be a pullup input
+  pinMode(sensorPin, INPUT_PULLUP);
+  // set the deadbolt pin to be an output
+  pinMode(deadboltPin, OUTPUT);
+
+//  Serial.println("RUNNING HARDWARE TESTS...");
+//  run_all_tests();
+
   // initalize Udp communication
   if (Ethernet.begin(macAddress) == 0) {
     Serial.println("Failed to configure Ethernet using DHCP");
@@ -34,14 +42,6 @@ void setup() {
   
   Ethernet.begin(macAddress, local_ip);
   Udp.begin(local_port);
-  
-  // set the sensor pin to be a pullup input
-  pinMode(sensorPin, INPUT_PULLUP);
-  // set the deadbolt pin to be an output
-  pinMode(deadboltPin, OUTPUT);
-
-//  Serial.println("Running hardware tests...");
-//  run_all_tests();
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -53,7 +53,7 @@ void setup() {
  */
 void loop() {
   // wait and receive UDP messages from AccessSystem
-  int action = getUDPPacket();  
+  int action = getUDPPacket();
   
   // message to unlock door
   if (action == 1) {
@@ -167,13 +167,19 @@ void sendUDPPacket(String message, IPAddress ip, unsigned int port) {
  * Run all hardware tests
  */
 void run_all_tests() {
-  Serial.println("Testing deadbolt unlock...");
+  Serial.println();
+  delay(1000);
+  Serial.println("TESTING DEADBOLT UNLOCK...");
   test_deadbolt_unlock();
-  delay(1000);
-  Serial.println("Testing magnetic sensor...");
+  
+  Serial.println();
+  delay(5000);
+  Serial.println("TESTING MAGNETIC SENSOR...");
   test_magnetic_sensor();
-  delay(1000);
-  Serial.println("Testing deadbolt lock...");
+ 
+  Serial.println();
+  delay(5000);
+  Serial.println("TESTING DEADBOLT LOCK...");
   test_deadbolt_lock();
 }
 
