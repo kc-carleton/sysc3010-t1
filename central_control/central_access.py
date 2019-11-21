@@ -3,6 +3,7 @@ from firebase import firebase
 import json
 import random
 import udp_utils 
+import datetime
 
 firebase = firebase.FirebaseApplication('https://sysc3010-t1.firebaseio.com/', None)
 kc_port = 5
@@ -13,32 +14,35 @@ dc_address = ''
 def check_database_authentication(user_cred):
    result = firebase.get('/users', None) 
    if result is None:
-       return False
+       return False, ''
    for key in result:
        user = result[key]
        if user is None:
-           return False
+           return False, ''
        if str(user_cred.get('user_code')) != str(user.get('user_code')):
            continue
        credentials = user.get('credentials')
        if credentials is None:
-           return False
+           return False, user_cred.get('user_name')
        for i in range(len(credentials)):
            credential = credentials[i]
            if str(credential.get('hashed_passcode')) == str(user_cred.get('hashed_passcode')) and str(credential.get('safe')) == str(user_cred.get('safe')):
                failed_login_count = 0
                out = {'failedLoginCount': failed_login_count, 'hashed_passcode': credential.get('hashed_passcode'), 'safe': credential.get('safe')}
                firebase.patch('/users/{}/credentials/{}'.format(key, i), out)
-               return True
+               return True, user_cred.get('user_name')
            else:
                if(str(credential.get('safe')) == str(user_cred.get('safe'))):
                    failed_login_count = int(credential.get('failedLoginCount')) + 1
                    out = {'failedLoginCount': failed_login_count, 'hashed_passcode': credential.get('hashed_passcode'), 'safe': credential.get('safe')}
                    firebase.patch('/users/{}/credentials/{}'.format(key, i), out)
-   return False
+                   return False, user_cred.get('user_name')
+   return False, ''
 
-def update_database_logs(user, access_time, safe, success):
-    update = {'user': user, 'access_time': access_time, 'success': success}
+def update_database_logs(user, safe, success):
+    if user is None:
+        return 
+    update = {'user': user, 'access_time': datetime.datetime.now(), 'success': success}
 
     result = firebase.get('/safes', None)
     if result is None:
@@ -84,7 +88,8 @@ def notify_admin(number_of_tries, user_code, safe):
 def action_thread(safe, hashed_passcode, user_code, sender_port, sender_ip):
     thread_port = random.randint(1000,50000)
 
-    success = check_database_authentication({'user_name': user_code, 'hashed_passcode': hashed_passcode, 'safe': safe})
+    success, user_name  = check_database_authentication({'user_code': user_code, 'hashed_passcode': hashed_passcode, 'safe': safe})
+    update_database_logs(user_name, safe, success)
 
     ack_kc = create_ack(success)
 
@@ -143,4 +148,4 @@ if __name__ == '__main__':
     main()
 
 #print(check_database_authentication({'user_name':'michael', 'hashed_passcode': '3973', 'safe': 1}))
-#update_database_logs('michael', 627262, 1, True)
+#update_database_logs('phil', 2, True)
