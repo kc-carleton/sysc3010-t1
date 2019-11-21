@@ -14,7 +14,6 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
-import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.Random;
@@ -185,6 +184,11 @@ public class AdminControls extends AppCompatActivity implements UsernameDialog.U
         removeCredentialDialog.show(getSupportFragmentManager(), "Remove credential dialog");
     }
 
+    private void openUserFailedAlertDialog(int usercode) {
+        AlertDialog alertDialog = new AlertDialog(String.format("User %s failed to login 3 times", usercode));
+        alertDialog.show(getSupportFragmentManager(), "Alert dialog");
+    }
+
 
     @Override
     public void applyNewUsername(String username) {
@@ -268,6 +272,21 @@ public class AdminControls extends AppCompatActivity implements UsernameDialog.U
                 username, usercode), Toast.LENGTH_LONG).show();
     }
 
+    private void checkForFailedLogins() {
+        for (User user: users) {
+            if (user.getCredentials() != null) {
+                for (Credential c: user.getCredentials()) {
+                    if (c.getFailedLoginCount() >= 3) {
+                        openUserFailedAlertDialog(user.getUser_code());
+
+                        c.resetLoginCount();
+                        databaseUsers.child(user.getFirebase_id()).setValue(user);
+                    }
+                }
+            }
+        }
+    }
+
     private void loadUserDatabase() {
         databaseUsers.addValueEventListener(new ValueEventListener() {
             @Override
@@ -279,6 +298,8 @@ public class AdminControls extends AppCompatActivity implements UsernameDialog.U
                     users.add(user);
                     System.out.println("User has been found: " + user.getUser_name());
                 }
+
+                checkForFailedLogins();
             }
 
             @Override
