@@ -4,7 +4,7 @@ public class Credential {
 
     private String hashed_passcode;
     private int safe;
-    private int failedLoginCount;
+    private int failed_login_count;
 
     public Credential() {
 
@@ -13,7 +13,7 @@ public class Credential {
     public Credential(String hashed_passcode, int safe) {
         this.hashed_passcode = hashed_passcode;
         this.safe = safe;
-        this.failedLoginCount = 0;
+        this.failed_login_count = 0;
     }
 
     public String getHashed_passcode() {
@@ -25,10 +25,10 @@ public class Credential {
     }
 
     public void resetLoginCount() {
-        this.failedLoginCount = 0;
+        this.failed_login_count = 0;
     }
 
-    public int getFailedLoginCount() {
-        return failedLoginCount;
+    public int getFailed_login_count() {
+        return failed_login_count;
     }
 }

@@ -276,7 +276,7 @@ public class AdminControls extends AppCompatActivity implements UsernameDialog.U
         for (User user: users) {
             if (user.getCredentials() != null) {
                 for (Credential c: user.getCredentials()) {
-                    if (c.getFailedLoginCount() >= 3) {
+                    if (c.getFailed_login_count() >= 3) {
                         openUserFailedAlertDialog(user.getUser_code());
 
                         c.resetLoginCount();
@@ -286,6 +286,7 @@ public class AdminControls extends AppCompatActivity implements UsernameDialog.U
             }
         }
     }
+
 
     private void loadUserDatabase() {
         databaseUsers.addValueEventListener(new ValueEventListener() {
