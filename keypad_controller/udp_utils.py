@@ -29,7 +29,7 @@ def create_data(json_data):
     RETURN a byte array representing the data in the DATA packet to be sent.'''
     if json_data is None:
         return None
-    data = '{}{}\0'.format(PacketType.DATA.value, str(json_data))
+    data = '{}{}\0'.format(PacketType.DATA.value, json.dumps(json_data))
     return data.encode()
 
 
@@ -50,7 +50,7 @@ def decode_data(encoded):
 
     if opcode != PacketType.DATA.value:
         return None, 'incorrect_data_opcode'
-    if data == '':
+    if data == '""':
         return None, 'no_json_data'
     try:
         json_data = json.loads(data)
