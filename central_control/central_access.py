@@ -54,11 +54,19 @@ def start_open_door_action():
     command = udp_utils.create_command(True)
 
 def wait_dc_ack(safe, thread_port):
-    buf, address = udp_utils.receive_pkt(thread_port)
-    ack, error = udp_utils.decode_ack(buf)
-    if ack is None: # Error
-        error_mes = udp_utils.create_error(error)
+    ack = None
+    for i in range(3):
+        buf, address = udp_utils.receive_pkt(thread_port)
+        if buf != None:
+            break
+    if buf is None:
+        error_mes = udp_utils.create_error(address)
         udp_utils.send_pkt(error_mes, address, dc_port)
+    else:
+        ack, error = udp_utils.decode_ack(buf)
+        if ack is None: # Error
+            error_mes = udp_utils.create_error(error)
+            udp_utils.send_pkt(error_mes, address, dc_port)
     return ack
 
 def notify_admin(number_of_tries, user_code, safe):
@@ -107,7 +115,7 @@ class PortListener:
     def listen_port(self):
         # Listen to port using UDP
         while True:
-            ret, data = get_json_data()
+            ret, data = self.get_json_data()
             if ret:
                 json_data = json.loads(data)
                 self.spawn_action_thread(kc_port, address, json_data)
