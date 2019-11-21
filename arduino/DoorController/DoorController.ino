@@ -4,10 +4,13 @@
 
 #include <Ethernet.h>
 #include <EthernetUdp.h>
+#include <SPI.h>
 
-byte macAddress[] = {0xDE, 0xAD, 0xEF, 0xED};
-IPAddress ip(192, 168, 123, 177);
-int localPort = 8888;
+byte macAddress[] = {0x90, 0xA2, 0xDA, 0x0F, 0x3B, 0x9D};
+IPAddress local_ip(192, 168, 123, 200);
+IPAddress AS_ip(192, 168, 123, 202);
+unsigned int local_port = 161;
+unsigned int AS_port = 161;
 EthernetUDP Udp;
 
 int sensorPin = 2;
@@ -21,9 +24,16 @@ void setup() {
   // initialize serial communication at 9600 bits per second:
   Serial.begin(9600);
 
-  // initalized Udp communication
-  Ethernet.begin(macAddress, ip);
-  Udp.begin(localPort);
+  // initalize Udp communication
+  if (Ethernet.begin(macAddress) == 0) {
+    Serial.println("Failed to configure Ethernet using DHCP");
+    for (;;);
+  } else {
+    Serial.println("Ethernet configuration successful.");
+  }
+  
+  Ethernet.begin(macAddress, local_ip);
+  Udp.begin(local_port);
   
   // set the sensor pin to be a pullup input
   pinMode(sensorPin, INPUT_PULLUP);
@@ -48,17 +58,17 @@ void loop() {
   // message to unlock door
   if (action == 1) {
     unlockDoor();
-    // sendUDPPacket();
+    sendUDPPacket("ack", AS_ip, AS_port);
     delay(5000);
     while (readDoorSensor()) {
       delay(10);
     }
     lockDoor();
-    // sendUDPPacket();
-  } else {
+    sendUDPPacket("closed", AS_ip, AS_port);
+  } else if (action == -1) {
     Serial.println("ERROR: Unknown action");
   }
-  delay(10000);
+  delay(100);
 }
 
 
@@ -92,15 +102,19 @@ void lockDoor() {
 }
 
 /**
- * Wait for and receive a UDP message
+ * Wait for and receive a UDP message. Returns 0 if no packet received,
+ * 1 if unlock message received and -1 if unknown message
  */
 int getUDPPacket() {
-  char inBuffer[UDP_TX_PACKET_MAX_SIZE];
-  char outBuffer[] = "acknowledged";
-
-  // receive packet
+  char inBuffer[1];
+  
+  Serial.println("Listening for UDP Message");
+  
+  // receive packet but return if empty (no packet)
   int packetSize = Udp.parsePacket();
-  if (packetSize) {
+  if (!packetSize) {
+    return 0;
+  } else {
     Serial.print("Received packet of size ");
     Serial.println(packetSize);
     Serial.print("From ");
@@ -115,24 +129,34 @@ int getUDPPacket() {
     Serial.println(Udp.remotePort());
 
     // read packet contents into buffer
-    Udp.read(inBuffer, UDP_TX_PACKET_MAX_SIZE);
+    Udp.read(inBuffer, 1);
     Serial.print("Contents: ");
     Serial.println(inBuffer);
-
-    // send a reply to acknowledge the message was received
-    Udp.beginPacket(Udp.remoteIP(), Udp.remotePort());
-    Udp.write(outBuffer);
-    Udp.endPacket();
     
-    
-//    return inBuffer; 
-    return 1;
+    if (inBuffer[0] == '1') {
+      return 1;
+    } else {
+      return-1;
+    }
   }
-  delay(10);
 }
 
-void sendUDPPacket() {
-  
+/**
+ * Send a udp message with the given string at the specified ip and port
+ */
+void sendUDPPacket(String message, IPAddress ip, unsigned int port) {
+  Serial.print("Sending message to ");
+  for (int i = 0; i < 4; i++) {
+      Serial.print(ip[i], DEC);
+      if (i < 3) {
+      Serial.print(".");
+    }
+  }
+  Serial.print(" on port ");
+  Serial.println(port);
+  Udp.beginPacket(ip, port);
+  Udp.println(message);
+  Udp.endPacket();
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -143,8 +167,13 @@ void sendUDPPacket() {
  * Run all hardware tests
  */
 void run_all_tests() {
+  Serial.println("Testing deadbolt unlock...");
   test_deadbolt_unlock();
+  delay(1000);
+  Serial.println("Testing magnetic sensor...");
   test_magnetic_sensor();
+  delay(1000);
+  Serial.println("Testing deadbolt lock...");
   test_deadbolt_lock();
 }
 
