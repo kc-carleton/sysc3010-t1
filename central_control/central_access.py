@@ -18,14 +18,23 @@ def check_database_authentication(user_cred):
        user = result[key]
        if user is None:
            return False
-       if str(user_cred.get('user_name')) != str(user.get('user_name')):
-           return False
+       if str(user_cred.get('user_code')) != str(user.get('user_code')):
+           continue
        credentials = user.get('credentials')
        if credentials is None:
            return False
-       for credential in credentials:
+       for i in range(len(credentials)):
+           credential = credentials[i]
            if str(credential.get('hashed_passcode')) == str(user_cred.get('hashed_passcode')) and str(credential.get('safe')) == str(user_cred.get('safe')):
+               failed_login_count = 0
+               out = {'failedLoginCount': failed_login_count, 'hashed_passcode': credential.get('hashed_passcode'), 'safe': credential.get('safe')}
+               firebase.patch('/users/{}/credentials/{}'.format(key, i), out)
                return True
+           else:
+               if(str(credential.get('safe')) == str(user_cred.get('safe'))):
+                   failed_login_count = int(credential.get('failedLoginCount')) + 1
+                   out = {'failedLoginCount': failed_login_count, 'hashed_passcode': credential.get('hashed_passcode'), 'safe': credential.get('safe')}
+                   firebase.patch('/users/{}/credentials/{}'.format(key, i), out)
    return False
 
 def update_database_logs(user, access_time, safe, success):
