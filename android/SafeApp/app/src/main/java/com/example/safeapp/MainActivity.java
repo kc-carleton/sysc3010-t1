@@ -9,12 +9,12 @@ import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
 
     private EditText username;
     private EditText password;
-    private TextView info;
     private Button login;
 
     private final String ADMIN_USERNAME = "a";
@@ -29,10 +29,8 @@ public class MainActivity extends AppCompatActivity {
 
         username = (EditText)findViewById(R.id.editUsername);
         password = (EditText)findViewById(R.id.editPassword);
-        info = (TextView) findViewById(R.id.txtLogin);
         login = (Button) findViewById(R.id.btnLogin);
 
-        info.setText("Please login!");
         login_fail_counter = 0;
 
         validateLogin(ADMIN_USERNAME, ADMIN_PASSWORD);
@@ -55,7 +53,7 @@ public class MainActivity extends AppCompatActivity {
             startActivity(intent);
         } else {
             login_fail_counter += 1;
-            info.setText(String.format("Failed to login %s times, please try again", login_fail_counter));
+            Toast.makeText(this, String.format("Failed to login, please try again"), Toast.LENGTH_LONG).show();
         }
     }
 }
