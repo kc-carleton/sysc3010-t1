@@ -3,6 +3,7 @@ from keypad_library import keypad
 from time import sleep
 import udp_utils as utils
 import RPi.GPIO as GPIO
+import json
 
 kp = keypad()
 
@@ -72,8 +73,8 @@ def set_LED(success):
 
 def send_user_data_udp(user_code, hashed_passcode, safe_number, ip_addr, port):
     '''Will send a DATA packet to the Access System over UDP with the user credentials.'''
-    login_info = '{{user_code:{},hashed_passcode:{},safe_number:{}}}'.format(user_code, hashed_passcode, safe_number)
-    data_pkt = utils.create_data(login_info)
+    creds = {'user_code': user_code, 'hashed_passcode': hashed_passcode, 'safe_number': safe_number}
+    data_pkt = utils.create_data(creds)
     utils.send_pkt(data_pkt, ip_addr, port)
 
 
@@ -98,16 +99,25 @@ def verify_user_credentials(user_credentials):
             if (all(isinstance(item, int) for item in user_code) and 
                     all(isinstance(item, int) for item in passcode) and 
                     all(isinstance(item, int) for item in safe_number)):
-                set_LED(True)
+                #set_LED(True)
                 return True
-    set_LED(False)
+    #set_LED(False)
     return False
 
 
 def convert_to_str(input_seq, seperator):
     return seperator.join([str(elem) for elem in input_seq])
 
-#while True:
-#    user_code, hashed_passcode, safe_number = read_keypad()
-#    send_user_data_udp(user_code, hashed_passcode, safe_number, '192.168.1.134', 10000)
+while True:
+    creds = None
+    while creds == None:
+        creds = read_keypad()
+    user_code, hashed_passcode, safe_number = creds
+    print('{} --- {} --- {}'.format(user_code, hashed_passcode, safe_number))
+    send_user_data_udp(user_code, hashed_passcode, safe_number, '192.168.1.106', 10000)
 
+    ack, address = utils.receive_pkt(10001)
+    print('RAW ACK: {}'.format(ack))
+    decoded_ack, err = utils.decode_ack(ack)
+    print('ACK VALUE: {} ----- {}'.format(decoded_ack, address))
+    set_LED(decoded_ack)
