@@ -3,16 +3,16 @@ import socket
 import json
 import select
 
-def send_pkt(data, ip_address, port):
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+def send_pkt(s, data, ip_address, port):
+    #s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     server_address = (ip_address, port)
     s.sendto(data, server_address)
 
 
-def receive_pkt(port):
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    server_address = ('', port)
-    s.bind(server_address)
+def receive_pkt(s, port):
+    #s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    #server_address = ('', port)
+    #s.bind(server_address)
 
     s.setblocking(0)
     timeout_length = 60

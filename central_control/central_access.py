@@ -4,9 +4,10 @@ import json
 import random
 import udp_utils 
 import datetime
+import socket
 
 firebase = firebase.FirebaseApplication('https://sysc3010-t1.firebaseio.com/', None)
-kc_port = 5
+kc_port = 10001
 dc_port = 5
 kc_address = ''
 dc_address = ''
@@ -28,13 +29,13 @@ def check_database_authentication(user_cred):
            credential = credentials[i]
            if str(credential.get('hashed_passcode')) == str(user_cred.get('hashed_passcode')) and str(credential.get('safe')) == str(user_cred.get('safe')):
                failed_login_count = 0
-               out = {'failedLoginCount': failed_login_count, 'hashed_passcode': credential.get('hashed_passcode'), 'safe': credential.get('safe')}
+               out = {'failed_login_count': failed_login_count, 'hashed_passcode': credential.get('hashed_passcode'), 'safe': credential.get('safe')}
                firebase.patch('/users/{}/credentials/{}'.format(key, i), out)
                return True, user_cred.get('user_name')
            else:
                if(str(credential.get('safe')) == str(user_cred.get('safe'))):
-                   failed_login_count = int(credential.get('failedLoginCount')) + 1
-                   out = {'failedLoginCount': failed_login_count, 'hashed_passcode': credential.get('hashed_passcode'), 'safe': credential.get('safe')}
+                   failed_login_count = int(credential.get('failed_login_count')) + 1
+                   out = {'failed_login_count': failed_login_count, 'hashed_passcode': credential.get('hashed_passcode'), 'safe': credential.get('safe')}
                    firebase.patch('/users/{}/credentials/{}'.format(key, i), out)
                    return False, user_cred.get('user_name')
    return False, ''
@@ -50,10 +51,10 @@ def update_database_logs(user, safe, success):
 
     error = firebase.post('/safes/{}'.format(safe), update)
 
-def unlock_safe(safe, thread_port):
+def unlock_safe(socket, safe, thread_port):
     command = udp_utils.create_command(True)
-    udp_utils.send_pkt(command, dc_address, dc_port)
-    ack = wait_dc_ack(safe, thread_port)
+    udp_utils.send_pkt(socket, command, dc_address, dc_port)
+    ack = wait_dc_ack(socket, safe, thread_port)
 
 def send_ack_kc(success):
     ack = udp_utils.create_ack(success)
@@ -66,43 +67,51 @@ def send_error_kc(error_message):
 def start_open_door_action():
     command = udp_utils.create_command(True)
 
-def wait_dc_ack(safe, thread_port):
+def wait_dc_ack(socket, safe, thread_port):
     ack = None
     for i in range(3):
-        buf, address = udp_utils.receive_pkt(thread_port)
+        buf, address = udp_utils.receive_pkt(socket, thread_port)
         if buf != None:
             break
     if buf is None:
         error_mes = udp_utils.create_error(address)
-        udp_utils.send_pkt(error_mes, address, dc_port)
+        udp_utils.send_pkt(socket, error_mes, address, dc_port)
     else:
         ack, error = udp_utils.decode_ack(buf)
         if ack is None: # Error
             error_mes = udp_utils.create_error(error)
-            udp_utils.send_pkt(error_mes, address, dc_port)
+            udp_utils.send_pkt(socket, error_mes, address, dc_port)
     return ack
 
 def notify_admin(number_of_tries, user_code, safe):
     pass
 
 def action_thread(safe, hashed_passcode, user_code, sender_port, sender_ip):
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     thread_port = random.randint(1000,50000)
+    server_address = ('', thread_port)
+    s.bind(server_address)
 
     success, user_name  = check_database_authentication({'user_code': user_code, 'hashed_passcode': hashed_passcode, 'safe': safe})
     update_database_logs(user_name, safe, success)
 
-    ack_kc = create_ack(success)
+    ack_kc = udp_utils.create_ack(success)
+    print("Created ack {}".format(ack_kc))
 
     if(success):
-        unlock_safe(safe, thread_port)
+        unlock_safe(s, safe, thread_port)
 
-    udp_utils.send_pkt(ack_kc, kc_address, kc_port)
+    print("Sending to: address: {} port: {}".format(sender_ip, kc_port))
+
+    udp_utils.send_pkt(s, ack_kc, sender_ip[0], kc_port)
+    s.close()
 
 class ActionThread(threading.Thread):
-    def __init__(self, safe, hashed_passcode, user_name, sender_port, sender_ip):
+    def __init__(self, safe, hashed_passcode, user_code, sender_port, sender_ip):
+        super(ActionThread, self).__init__()
         self.safe = safe
         self.hashed_passcode = hashed_passcode
-        self.user_name = user_name
+        self.user_code = user_code
         self.sender_port = sender_port
         self.sender_ip = sender_ip
 
@@ -113,23 +122,29 @@ class ActionThread(threading.Thread):
 class PortListener:
 
     def __init__(self):
-        self.open_port = 30
+        open_port = 10010
+        self.open_port = open_port
+        self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
     def get_json_data(self):
         ret = True
-
-        buf, address = udp_utils.receive_pkt(self.open_port)
+        print("Waiting for packet")
+        buf, address = udp_utils.receive_pkt(self.socket, self.open_port)
+        print("Got packet")
         data, err = udp_utils.decode_data(buf)
+        print("{} {}".format(data, err))
         if(data is None): # An error occurred
             error_mes = udp_utils.create_error(err)
-            udp_utils.send_pkt(error_mes, address, kc_port)
+            udp_utils.send_pkt(self.socket, error_mes, address[0], kc_port)
             ret = False
-        return ret, data
+        return ret, data, address
 
     def listen_port(self):
         # Listen to port using UDP
+        server_address = ('', self.open_port)
+        self.socket.bind(server_address)
         while True:
-            ret, data = self.get_json_data()
+            ret, data, address = self.get_json_data()
             if ret:
                 json_data = json.loads(data)
                 self.spawn_action_thread(kc_port, address, json_data)
