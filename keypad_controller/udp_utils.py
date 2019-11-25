@@ -85,7 +85,10 @@ def decode_ack(encoded):
         return None, 'no_command'
     if data != 'True' and data != 'False':
         return None, 'inavlid_command'
-    return bool(data) ,''
+    if data == 'True':
+        return True ,''
+    else:
+        return False, ''
 
 
 def create_command(cmd):
