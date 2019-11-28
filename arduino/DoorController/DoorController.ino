@@ -17,6 +17,10 @@ int sensorPin = 2;
 int deadboltPin = 9;
 bool doorLocked = true;
 
+int iter = 0;
+char true_ack_msg[] = {'0', 'x', '0', '2', 'T', 'r', 'u', 'e', '\\', '0', '\0'};
+char false_ack_msg[] = {'0', 'x', '0', '2', 'F', 'a', 'l', 's', 'e', '\\', '0', '\0'};
+
 /*
  * Setup UDP communication and peripheral pins
  */
@@ -53,22 +57,43 @@ void setup() {
  */
 void loop() {
   // wait and receive UDP messages from AccessSystem
+  if (iter % 10 == 0) {
+    Serial.println("Listening for UDP Message");
+  }
   int action = getUDPPacket();
   
-  // message to unlock door
+  // if message to unlock door
   if (action == 1) {
     unlockDoor();
-    sendUDPPacket("ack", AS_ip, AS_port);
+    sendUDPPacket(true_ack_msg, AS_ip, AS_port);
     delay(5000);
+    int timer = 0;
     while (readDoorSensor()) {
-      delay(10);
+      // if the DC gets a command to open the door while already open,
+      // send a false ack msg to the AccessSystem
+      int command = getUDPPacket();
+      if (command == 1) {
+        sendUDPPacket(false_ack_msg, AS_ip, AS_port);
+      }
+      delay(1000);
+      // lock the safe after 60 seconds
+      timer += 1;
+      if (timer == 60) {
+        break;
+      }
     }
     lockDoor();
-    sendUDPPacket("closed", AS_ip, AS_port);
+    // notify the AccessSystem that the safe is closed
+    sendUDPPacket(true_ack_msg, AS_ip, AS_port);
   } else if (action == -1) {
     Serial.println("ERROR: Unknown action");
   }
+  
   delay(100);
+  iter += 1;
+  if (iter == 100) {
+    iter = 0;
+  }
 }
 
 
@@ -106,9 +131,7 @@ void lockDoor() {
  * 1 if unlock message received and -1 if unknown message
  */
 int getUDPPacket() {
-  char inBuffer[1];
-  
-  Serial.println("Listening for UDP Message");
+  char inBuffer[20];
   
   // receive packet but return if empty (no packet)
   int packetSize = Udp.parsePacket();
@@ -116,8 +139,8 @@ int getUDPPacket() {
     return 0;
   } else {
     Serial.print("Received packet of size ");
-    Serial.println(packetSize);
-    Serial.print("From ");
+    Serial.print(packetSize);
+    Serial.print(" From ");
     IPAddress remote = Udp.remoteIP();
     for (int i = 0; i < 4; i++) {
       Serial.print(remote[i], DEC);
@@ -126,14 +149,17 @@ int getUDPPacket() {
       }
     }
     Serial.print(", port ");
-    Serial.println(Udp.remotePort());
+    AS_port = Udp.remotePort();
+    Serial.println(AS_port);
+    
 
     // read packet contents into buffer
-    Udp.read(inBuffer, 1);
+    Udp.read(inBuffer, 13);
     Serial.print("Contents: ");
     Serial.println(inBuffer);
+    Serial.println();
     
-    if (inBuffer[0] == '1') {
+    if (inBuffer[4] == 'T') {
       return 1;
     } else {
       return-1;
@@ -144,8 +170,10 @@ int getUDPPacket() {
 /**
  * Send a udp message with the given string at the specified ip and port
  */
-void sendUDPPacket(String message, IPAddress ip, unsigned int port) {
-  Serial.print("Sending message to ");
+void sendUDPPacket(char message[], IPAddress ip, unsigned int port) {
+  Serial.print("Sending '");
+  Serial.print(message);
+  Serial.print("' to ");
   for (int i = 0; i < 4; i++) {
       Serial.print(ip[i], DEC);
       if (i < 3) {
@@ -155,7 +183,7 @@ void sendUDPPacket(String message, IPAddress ip, unsigned int port) {
   Serial.print(" on port ");
   Serial.println(port);
   Udp.beginPacket(ip, port);
-  Udp.println(message);
+  Udp.print(message);
   Udp.endPacket();
 }
 
@@ -173,12 +201,12 @@ void run_all_tests() {
   test_deadbolt_unlock();
   
   Serial.println();
-  delay(5000);
+  delay(3000);
   Serial.println("TESTING MAGNETIC SENSOR...");
   test_magnetic_sensor();
  
   Serial.println();
-  delay(5000);
+  delay(3000);
   Serial.println("TESTING DEADBOLT LOCK...");
   test_deadbolt_lock();
 }
@@ -216,7 +244,7 @@ void test_magnetic_sensor() {
     } else {
       Serial.println("Closed");
     }
-    delay(1000);
+    delay(500);
   }
 }
 
