@@ -4,14 +4,16 @@ from time import sleep
 import udp_utils as utils
 import RPi.GPIO as GPIO
 import json
+import socket
+import sys
 
-kp = keypad()
+#kp = keypad()
 
 
 def read_keypad():
     '''Will read user inputs from the keypad and save them in a Python tuple. 
     The tuple format is (user_code, hashed_passcode, safe number)'''
-    
+    kp = keypad()
     keys = []
     
     # Get 9 key presses: 4 digit user code, 4 digit passcode, 1 digit safe number.
@@ -25,8 +27,9 @@ def read_keypad():
     
     # Verify the users credentials before continuing.
     if verify_user_credentials(keys) is False:
+        set_LED(False)
         print('Invalid user credential format')
-        return
+        return None,None,None
 
     user_code = convert_to_str(keys[0:4], '')
     passcode = convert_to_str(keys[5:9], '')
@@ -36,7 +39,8 @@ def read_keypad():
 
 
 def get_digit():
-    '''poll for key press and return the key which was pressed'''
+    '''poll for key press and return the key which was pressed''' 
+    kp = keypad()
     key = None
     while key == None:
         key = kp.getKey()
@@ -71,17 +75,17 @@ def set_LED(success):
         GPIO.output(6, GPIO.LOW)
 
 
-def send_user_data_udp(user_code, hashed_passcode, safe_number, ip_addr, port):
+def send_user_data_udp(user_code, hashed_passcode, safe_number, ip_addr, port, s):
     '''Will send a DATA packet to the Access System over UDP with the user credentials.'''
     creds = {'user_code': user_code, 'hashed_passcode': hashed_passcode, 'safe_number': safe_number}
     data_pkt = utils.create_data(creds)
-    utils.send_pkt(data_pkt, ip_addr, port)
+    utils.send_pkt(s, data_pkt, ip_addr, port)
 
 
-def receive_udp_ack():
+def receive_udp_ack(s):
     '''Wait for an acknowledgment packet from the Access System.'''
     port = 8080
-    buf, address = utils.receive_pkt(port)
+    buf, address = utils.receive_pkt(s, port)
     ack_data = utils.decode_ack(buf)
     if ack_data is None:
         print('Error receiving ACK packet')
@@ -108,16 +112,35 @@ def verify_user_credentials(user_credentials):
 def convert_to_str(input_seq, seperator):
     return seperator.join([str(elem) for elem in input_seq])
 
-while True:
-    creds = None
-    while creds == None:
-        creds = read_keypad()
-    user_code, hashed_passcode, safe_number = creds
-    print('{} --- {} --- {}'.format(user_code, hashed_passcode, safe_number))
-    send_user_data_udp(user_code, hashed_passcode, safe_number, '192.168.1.106', 10000)
 
-    ack, address = utils.receive_pkt(10001)
-    print('RAW ACK: {}'.format(ack))
-    decoded_ack, err = utils.decode_ack(ack)
-    print('ACK VALUE: {} ----- {}'.format(decoded_ack, address))
-    set_LED(decoded_ack)
+kc_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+kc_port = 10001
+as_port = 10010
+as_ip = '172.20.10.6'
+server_address = ('', kc_port)
+kc_socket.bind(server_address)
+
+while True:
+    try:
+        creds = None
+        print('Creds set to {}'.format(creds))
+        
+        # Wait for user to enter all credentials in keypad
+        while creds == None or creds == (None, None, None):
+            creds = read_keypad()
+        print('Creds set to {}'.format(creds))
+        
+        # Credentials were entered, save and print them
+        user_code, hashed_passcode, safe_number = creds
+        print('UC:{} --- HP:{} --- SN:{}'.format(user_code, hashed_passcode, safe_number))
+        
+        send_user_data_udp(user_code, hashed_passcode, safe_number, as_ip, as_port, kc_socket)
+        print('Data sent')
+        ack, address = utils.receive_pkt(kc_socket, kc_port)
+        decoded_ack, err = utils.decode_ack(ack)
+        print('Received ACK: {} --- From {}'.format(decoded_ack, address))
+        set_LED(decoded_ack)
+    except KeyboardInterrupt:
+        print('\nQuitting application...')
+        sys.exit(0)
+
