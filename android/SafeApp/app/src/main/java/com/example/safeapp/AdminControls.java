@@ -1,8 +1,10 @@
 package com.example.safeapp;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ListView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -23,10 +25,10 @@ public class AdminControls extends AppCompatActivity implements UsernameDialog.U
         RemoveCredentialDialog.RemoveCredentialDialogListener {
 
     private Button btnNewUser;
-    private Button btnDisplayDatabase;
     private Button btnAddCredential;
     private Button btnRemoveUser;
     private Button btnRemoveCredential;
+    private ListView listUsers;
 
     DatabaseReference databaseUsers;
     ArrayList<User> users;
@@ -39,21 +41,15 @@ public class AdminControls extends AppCompatActivity implements UsernameDialog.U
 
         // Setup buttons
         btnNewUser = (Button) findViewById(R.id.btnNewUser);
-        btnDisplayDatabase = (Button) findViewById(R.id.btnDisplayDataBase);
         btnAddCredential = (Button) findViewById(R.id.btnAddCredential);
         btnRemoveUser = (Button) findViewById(R.id.btnRemoveUser);
         btnRemoveCredential = (Button) findViewById(R.id.btnRemoveCredential);
+        listUsers = (ListView) findViewById(R.id.listUsers);
 
         btnNewUser.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 openUsernameDialog();
-            }
-        });
-        btnDisplayDatabase.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                displayDatabase();
             }
         });
         btnAddCredential.setOnClickListener(new View.OnClickListener() {
@@ -120,16 +116,13 @@ public class AdminControls extends AppCompatActivity implements UsernameDialog.U
     private void addCredential(int usercode, int safe) {
         int passcode = randomFourDigitValue();
         String hashedPasscode = hashPasscode(passcode);
-        System.out.println("Hashed passcode: " + hashedPasscode);
         Credential credential = new Credential(hashedPasscode, safe);
 
         if(users.size() == 0) {
             Toast.makeText(this, String.format("Something went wrong, no users found"), Toast.LENGTH_LONG).show();
-            System.out.println("ERROR: 0 users in database for credential");
             return;
         }
         for(User user: users) {
-            System.out.println(user.getUser_name());
             if(user.getUser_code() == usercode) {
                 updateUser(user, credential);
                 Toast.makeText(this, String.format("Access safe %s with passcode %s",
@@ -139,7 +132,6 @@ public class AdminControls extends AppCompatActivity implements UsernameDialog.U
             }
         }
         Toast.makeText(this, String.format("User %s was not found", usercode), Toast.LENGTH_LONG).show();
-        System.out.println(String.format("User %s was not found", usercode));
     }
 
     private void updateUser(User user, Credential credential) {
@@ -160,12 +152,8 @@ public class AdminControls extends AppCompatActivity implements UsernameDialog.U
         databaseUsers.child(user.getFirebase_id()).setValue(user);
     }
 
-    private void displayDatabase() {
-        // TODO:
-    }
-
     private void openUsernameDialog() {
-        UsernameDialog usernameDialog = new UsernameDialog();
+        UsernameDialog usernameDialog = new UsernameDialog(this);
         usernameDialog.show(getSupportFragmentManager(), "Username dialog");
     }
 
@@ -213,11 +201,9 @@ public class AdminControls extends AppCompatActivity implements UsernameDialog.U
     private void removeCredential(int usercode, int safenumber) {
         if(users.size() == 0) {
             Toast.makeText(this, String.format("Something went wrong, no users found"), Toast.LENGTH_LONG).show();
-            System.out.println("ERROR: 0 users in database for credential");
             return;
         }
         for(User user: users) {
-            System.out.println(user.getUser_name());
             if(user.getUser_code() == usercode) {
                 ArrayList<Credential> credentials = user.getCredentials();
                 if(credentials != null && credentials.size() > 0) {
@@ -236,29 +222,25 @@ public class AdminControls extends AppCompatActivity implements UsernameDialog.U
                         return;
                     }
                 }
+                Toast.makeText(this, String.format("Credential for user %s was not found", usercode), Toast.LENGTH_LONG).show();
             }
         }
         Toast.makeText(this, String.format("User %s was not found", usercode), Toast.LENGTH_LONG).show();
-        System.out.println(String.format("User %s was not found", usercode));
     }
 
     private void removeUser(int usercode) {
         if(users.size() == 0) {
             Toast.makeText(this, String.format("Something went wrong, no users found"), Toast.LENGTH_LONG).show();
-            System.out.println("ERROR: 0 users in database for credential");
             return;
         }
         for(User user: users) {
-            System.out.println(user.getUser_name());
             if(user.getUser_code() == usercode) {
                 databaseUsers.child(user.getFirebase_id()).removeValue();
                 Toast.makeText(this, String.format("User %s was removed", usercode), Toast.LENGTH_LONG).show();
-                System.out.println(String.format("User %s was removed", usercode));
                 return;
             }
         }
         Toast.makeText(this, String.format("User %s was not found", usercode), Toast.LENGTH_LONG).show();
-        System.out.println(String.format("User %s was not found", usercode));
     }
 
     private void addNewUser(String username) {
@@ -266,7 +248,6 @@ public class AdminControls extends AppCompatActivity implements UsernameDialog.U
         int usercode = generateNewUsercode();
 
         User user = new User(username, usercode, new ArrayList<Credential>(), id);
-        System.out.println(id + " " + databaseUsers.toString());
         databaseUsers.child(id).setValue(user);
         Toast.makeText(this, String.format("User %s has been added with usercode %s",
                 username, usercode), Toast.LENGTH_LONG).show();
@@ -293,19 +274,20 @@ public class AdminControls extends AppCompatActivity implements UsernameDialog.U
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 users.clear();
-                System.out.println("Reloading user data");
+
                 for(DataSnapshot postSnapshot : dataSnapshot.getChildren()) {
                     User user = postSnapshot.getValue(User.class);
                     users.add(user);
-                    System.out.println("User has been found: " + user.getUser_name());
                 }
 
+                UserList userList = new UserList(AdminControls.this, users);
+                listUsers.setAdapter(userList);
                 checkForFailedLogins();
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-                System.out.println("ERROR: Database failed to load");
+
             }
         });
     }

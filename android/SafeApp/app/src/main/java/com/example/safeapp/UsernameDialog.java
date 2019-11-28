@@ -8,12 +8,18 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatDialogFragment;
 
 public class UsernameDialog extends AppCompatDialogFragment {
     private EditText editTextUsername;
     private UsernameDialogListener listener;
+    private AdminControls callerClass;
+
+    public UsernameDialog(AdminControls callerClass) {
+        this.callerClass = callerClass;
+    }
 
     @Override
     public void onAttach(Context context) {
@@ -46,6 +52,10 @@ public class UsernameDialog extends AppCompatDialogFragment {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         String username = editTextUsername.getText().toString();
+                        if (username.contains("\n")) {
+                            Toast.makeText(callerClass, String.format("Your username must be a string"), Toast.LENGTH_LONG).show();
+                            return;
+                        }
                         listener.applyNewUsername(username);
                     }
                 });

@@ -1,5 +1,7 @@
 package com.example.safeapp;
 
+import java.io.Serializable;
+
 public class Credential {
 
     private String hashed_passcode;

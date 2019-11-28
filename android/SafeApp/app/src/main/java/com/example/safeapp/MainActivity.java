@@ -19,7 +19,6 @@ public class MainActivity extends AppCompatActivity {
 
     private final String ADMIN_USERNAME = "a";
     private String ADMIN_PASSWORD = "p";
-    private int login_fail_counter;
 
 
     @Override
@@ -30,8 +29,6 @@ public class MainActivity extends AppCompatActivity {
         username = (EditText)findViewById(R.id.editUsername);
         password = (EditText)findViewById(R.id.editPassword);
         login = (Button) findViewById(R.id.btnLogin);
-
-        login_fail_counter = 0;
 
         validateLogin(ADMIN_USERNAME, ADMIN_PASSWORD);
 
@@ -52,7 +49,6 @@ public class MainActivity extends AppCompatActivity {
             Intent intent = new Intent(MainActivity.this, AdminControls.class);
             startActivity(intent);
         } else {
-            login_fail_counter += 1;
             Toast.makeText(this, String.format("Failed to login, please try again"), Toast.LENGTH_LONG).show();
         }
     }

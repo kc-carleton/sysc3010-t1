@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#3093C0"
+    android:background="#FFFFFF"
     tools:context=".AdminControls">
 
     <Button
@@ -14,9 +14,9 @@
         android:layout_marginTop="30dp"
         android:layout_marginEnd="32dp"
         android:layout_marginRight="32dp"
-        android:background="#26A1DB"
+        android:background="#BEC4C7"
         android:text="Remove User"
-        android:textColor="#FCFCFC"
+        android:textColor="#000000"
         android:textSize="12sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/txtHeader" />
@@ -28,9 +28,9 @@
         android:layout_marginTop="47dp"
         android:layout_marginEnd="32dp"
         android:layout_marginRight="32dp"
-        android:background="#26A1DB"
+        android:background="#BEC4C7"
         android:text="Remove Credential"
-        android:textColor="#FCFCFC"
+        android:textColor="#000000"
         android:textSize="12sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/btnRemoveUser" />
@@ -41,9 +41,9 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="36dp"
         android:text="Admin Controls"
-        android:textColor="#FFFBFB"
+        android:textColor="#000000"
         android:textSize="30sp"
-        app:fontFamily="sans-serif-thin"
+        app:fontFamily="sans-serif-medium"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -55,25 +55,12 @@
         android:layout_marginStart="32dp"
         android:layout_marginLeft="32dp"
         android:layout_marginTop="30dp"
-        android:background="#26A1DB"
+        android:background="#BEC4C7"
         android:text="Add new user"
-        android:textColor="#FCFCFC"
+        android:textColor="#000000"
         android:textSize="12sp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/txtHeader" />
-
-    <Button
-        android:id="@+id/btnDisplayDataBase"
-        android:layout_width="150dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="47dp"
-        android:background="#26A1DB"
-        android:text="Display all data"
-        android:textColor="#FCFCFC"
-        android:textSize="12sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/btnAddCredential" />
 
     <Button
         android:id="@+id/btnAddCredential"
@@ -82,10 +69,21 @@
         android:layout_marginStart="32dp"
         android:layout_marginLeft="32dp"
         android:layout_marginTop="47dp"
-        android:background="#26A1DB"
+        android:background="#BEC4C7"
         android:text="Add Credential"
-        android:textColor="#FCFCFC"
+        android:textColor="#000000"
         android:textSize="12sp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/btnNewUser" />
+
+    <ListView
+        android:id="@+id/listUsers"
+        android:layout_width="337dp"
+        android:layout_height="290dp"
+        android:layout_marginTop="220dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/txtHeader"
+        app:layout_constraintVertical_bias="0.0" />
 </androidx.constraintlayout.widget.ConstraintLayout>
