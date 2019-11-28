@@ -1,8 +1,10 @@
 package com.example.safeapp;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ListView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -23,10 +25,10 @@ public class AdminControls extends AppCompatActivity implements UsernameDialog.U
         RemoveCredentialDialog.RemoveCredentialDialogListener {
 
     private Button btnNewUser;
-    private Button btnDisplayDatabase;
     private Button btnAddCredential;
     private Button btnRemoveUser;
     private Button btnRemoveCredential;
+    private ListView listUsers;
 
     DatabaseReference databaseUsers;
     ArrayList<User> users;
@@ -39,21 +41,15 @@ public class AdminControls extends AppCompatActivity implements UsernameDialog.U
 
         // Setup buttons
         btnNewUser = (Button) findViewById(R.id.btnNewUser);
-        btnDisplayDatabase = (Button) findViewById(R.id.btnDisplayDataBase);
         btnAddCredential = (Button) findViewById(R.id.btnAddCredential);
         btnRemoveUser = (Button) findViewById(R.id.btnRemoveUser);
         btnRemoveCredential = (Button) findViewById(R.id.btnRemoveCredential);
+        listUsers = (ListView) findViewById(R.id.listUsers);
 
         btnNewUser.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 openUsernameDialog();
-            }
-        });
-        btnDisplayDatabase.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                displayDatabase();
             }
         });
         btnAddCredential.setOnClickListener(new View.OnClickListener() {
@@ -160,12 +156,8 @@ public class AdminControls extends AppCompatActivity implements UsernameDialog.U
         databaseUsers.child(user.getFirebase_id()).setValue(user);
     }
 
-    private void displayDatabase() {
-        // TODO:
-    }
-
     private void openUsernameDialog() {
-        UsernameDialog usernameDialog = new UsernameDialog();
+        UsernameDialog usernameDialog = new UsernameDialog(this);
         usernameDialog.show(getSupportFragmentManager(), "Username dialog");
     }
 
@@ -294,12 +286,15 @@ public class AdminControls extends AppCompatActivity implements UsernameDialog.U
             public void onDataChange(DataSnapshot dataSnapshot) {
                 users.clear();
                 System.out.println("Reloading user data");
+
                 for(DataSnapshot postSnapshot : dataSnapshot.getChildren()) {
                     User user = postSnapshot.getValue(User.class);
                     users.add(user);
                     System.out.println("User has been found: " + user.getUser_name());
                 }
 
+                UserList userList = new UserList(AdminControls.this, users);
+                listUsers.setAdapter(userList);
                 checkForFailedLogins();
             }
 
