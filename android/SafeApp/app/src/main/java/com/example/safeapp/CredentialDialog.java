@@ -50,7 +50,6 @@ public class CredentialDialog extends AppCompatDialogFragment {
                             }
                         } catch (Exception e) {
                             Toast.makeText(callerClass, String.format("You must provide usercode as 4 digit integer"), Toast.LENGTH_LONG).show();
-                            System.out.println("ERROR: You must provide usercode as 4 digit integer");
                             return;
                         }
 
@@ -63,7 +62,6 @@ public class CredentialDialog extends AppCompatDialogFragment {
                             }
                         } catch (Exception e) {
                             Toast.makeText(callerClass, String.format("You must provide safe number as positive integer"), Toast.LENGTH_LONG).show();
-                            System.out.println("ERROR: You must provide safe number as positive integer");
                             return;
                         }
 
