@@ -11,13 +11,13 @@ def test_create_data_1():
 
 def test_create_data_2():
     json_string = ''
-    expected_result = b'0x01\0'
+    expected_result = b'0x01""\0'
     assert utils.create_data(json_string) == expected_result
 
 
 def test_create_data_3():
     json_string = 'testdata:test'
-    expected_result = '0x01{}\0'.format(json_string).encode()
+    expected_result = '0x01"{}"\0'.format(json_string).encode()
     assert utils.create_data(json_string) == expected_result
 
 

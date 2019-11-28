@@ -3,16 +3,16 @@ import socket
 import json
 import select
 
-def send_pkt(data, ip_address, port):
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+def send_pkt(s, data, ip_address, port):
+    #s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     server_address = (ip_address, port)
     s.sendto(data, server_address)
 
 
-def receive_pkt(port):
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    server_address = ('', port)
-    s.bind(server_address)
+def receive_pkt(s, port):
+    #s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    #server_address = ('', port)
+    #s.bind(server_address)
 
     s.setblocking(0)
     timeout_length = 60
@@ -29,7 +29,7 @@ def create_data(json_data):
     RETURN a byte array representing the data in the DATA packet to be sent.'''
     if json_data is None:
         return None
-    data = '{}{}\0'.format(PacketType.DATA.value, str(json_data))
+    data = '{}{}\0'.format(PacketType.DATA.value, json.dumps(json_data))
     return data.encode()
 
 
@@ -50,7 +50,7 @@ def decode_data(encoded):
 
     if opcode != PacketType.DATA.value:
         return None, 'incorrect_data_opcode'
-    if data == '':
+    if data == '""':
         return None, 'no_json_data'
     try:
         json_data = json.loads(data)
@@ -85,7 +85,10 @@ def decode_ack(encoded):
         return None, 'no_command'
     if data != 'True' and data != 'False':
         return None, 'inavlid_command'
-    return bool(data) ,''
+    if data == 'True':
+        return True ,''
+    else:
+        return False, ''
 
 
 def create_command(cmd):
