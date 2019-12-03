@@ -24,7 +24,10 @@ public class MainActivity extends AppCompatActivity {
     private final String ADMIN_USERNAME = "admin";
     private String ADMIN_PASSWORD = "pw";
 
-
+    /**
+     * Loads the screen
+     * @param savedInstanceState
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

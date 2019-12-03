@@ -37,6 +37,10 @@ public class AdminControls extends AppCompatActivity implements UsernameDialog.U
 
     private int MAX_FAIL_LOGIN_ATTEMPTS = 3;
 
+    /**
+     * Loads the screen
+     * @param savedInstanceState
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
