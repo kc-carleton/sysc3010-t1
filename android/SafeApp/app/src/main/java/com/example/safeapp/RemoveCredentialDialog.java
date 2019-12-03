@@ -12,6 +12,9 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatDialogFragment;
 
+/**
+ * RemoveCredentialDialog displays a dialog
+ */
 public class RemoveCredentialDialog extends AppCompatDialogFragment {
     private EditText editTextUsercode;
     private EditText editTextSafeNumber;
@@ -22,6 +25,11 @@ public class RemoveCredentialDialog extends AppCompatDialogFragment {
         this.callerClass = callerClass;
     }
 
+    /**
+     * Creates the dialog
+     * @param savedInstanceState
+     * @return built dialog
+     */
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
@@ -71,6 +79,10 @@ public class RemoveCredentialDialog extends AppCompatDialogFragment {
         return builder.create();
     }
 
+    /**
+     * Attaches the listener for the class
+     * @param context
+     */
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
@@ -82,6 +94,9 @@ public class RemoveCredentialDialog extends AppCompatDialogFragment {
         }
     }
 
+    /**
+     * Applies the dialog operation
+     */
     public interface RemoveCredentialDialogListener {
         void applyRemoveCredential(int usercode, int safenumber);
     }

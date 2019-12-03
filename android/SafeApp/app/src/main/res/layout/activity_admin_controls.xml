@@ -10,7 +10,7 @@
     <Button
         android:id="@+id/btnRemoveUser"
         android:layout_width="150dp"
-        android:layout_height="wrap_content"
+        android:layout_height="47dp"
         android:layout_marginTop="30dp"
         android:layout_marginEnd="32dp"
         android:layout_marginRight="32dp"
@@ -24,7 +24,7 @@
     <Button
         android:id="@+id/btnRemoveCredential"
         android:layout_width="150dp"
-        android:layout_height="45dp"
+        android:layout_height="47dp"
         android:layout_marginTop="47dp"
         android:layout_marginEnd="32dp"
         android:layout_marginRight="32dp"
@@ -51,7 +51,7 @@
     <Button
         android:id="@+id/btnNewUser"
         android:layout_width="150dp"
-        android:layout_height="wrap_content"
+        android:layout_height="47dp"
         android:layout_marginStart="32dp"
         android:layout_marginLeft="32dp"
         android:layout_marginTop="30dp"
@@ -78,9 +78,14 @@
 
     <ListView
         android:id="@+id/listUsers"
-        android:layout_width="337dp"
-        android:layout_height="290dp"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginLeft="20dp"
         android:layout_marginTop="220dp"
+        android:layout_marginEnd="20dp"
+        android:layout_marginRight="20dp"
+        android:layout_marginBottom="20dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

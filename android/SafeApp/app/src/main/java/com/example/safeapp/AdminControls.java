@@ -1,6 +1,5 @@
 package com.example.safeapp;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -20,6 +19,9 @@ import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.Random;
 
+/**
+ * AdminControls provides an interface for controls that the administrator will use.
+ */
 public class AdminControls extends AppCompatActivity implements UsernameDialog.UsernameDialogListener,
         CredentialDialog.CredentialDialogListener, RemoveUserDialog.RemoveUserDialogListener,
         RemoveCredentialDialog.RemoveCredentialDialogListener {
@@ -32,6 +34,8 @@ public class AdminControls extends AppCompatActivity implements UsernameDialog.U
 
     DatabaseReference databaseUsers;
     ArrayList<User> users;
+
+    private int MAX_FAIL_LOGIN_ATTEMPTS = 3;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,6 +81,10 @@ public class AdminControls extends AppCompatActivity implements UsernameDialog.U
         loadUserDatabase();
     }
 
+    /**
+     * Generates a 4 digit usercode
+     * @return 4 digit integer
+     */
     private int generateNewUsercode() {
         ArrayList<Integer> existingUsercodes = new ArrayList<>();
         for(User user: users) {
@@ -90,6 +98,11 @@ public class AdminControls extends AppCompatActivity implements UsernameDialog.U
         return newUsercode;
     }
 
+    /**
+     * Hashes 4 digit usercode
+     * @param passcode 4 digit integer
+     * @return String containing hashed value
+     */
     private String hashPasscode(int passcode) {
         try{
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
@@ -108,11 +121,20 @@ public class AdminControls extends AppCompatActivity implements UsernameDialog.U
         }
     }
 
+    /**
+     * Generates random 4 digit value
+     * @return 4 digit integer
+     */
     private int randomFourDigitValue() {
         Random r = new Random();
         return r.nextInt((9999-1000) + 1) + 1000;
     }
 
+    /**
+     * Adds a credential for a user
+     * @param usercode usercode to store
+     * @param safe safe number to access
+     */
     private void addCredential(int usercode, int safe) {
         int passcode = randomFourDigitValue();
         String hashedPasscode = hashPasscode(passcode);
@@ -134,6 +156,11 @@ public class AdminControls extends AppCompatActivity implements UsernameDialog.U
         Toast.makeText(this, String.format("User %s was not found", usercode), Toast.LENGTH_LONG).show();
     }
 
+    /**
+     * Updates a user with a credential
+     * @param user user to update
+     * @param credential credential to add
+     */
     private void updateUser(User user, Credential credential) {
         ArrayList<Credential> existingCredentials = user.getCredentials();
         if(existingCredentials == null) {
@@ -152,52 +179,90 @@ public class AdminControls extends AppCompatActivity implements UsernameDialog.U
         databaseUsers.child(user.getFirebase_id()).setValue(user);
     }
 
+    /**
+     * Opens UsernameDialog
+     */
     private void openUsernameDialog() {
         UsernameDialog usernameDialog = new UsernameDialog(this);
         usernameDialog.show(getSupportFragmentManager(), "Username dialog");
     }
 
+    /**
+     * Opens CredentialDialog
+     */
     private void openCredentialDialog() {
         CredentialDialog credentialDialog = new CredentialDialog(this);
         credentialDialog.show(getSupportFragmentManager(), "Credential dialog");
     }
 
+    /**
+     * Opens RemoveUserDialog
+     */
     private void openRemoveUserDialog() {
         RemoveUserDialog removeUserDialog = new RemoveUserDialog(this);
         removeUserDialog.show(getSupportFragmentManager(), "Remove user dialog");
     }
 
+    /**
+     * Opens RemoveCredentialDialog
+     */
     private void openRemoveCredentialDialog() {
         RemoveCredentialDialog removeCredentialDialog = new RemoveCredentialDialog(this);
         removeCredentialDialog.show(getSupportFragmentManager(), "Remove credential dialog");
     }
 
+    /**
+     * Opens AlertDialog
+     */
     private void openUserFailedAlertDialog(int usercode) {
         AlertDialog alertDialog = new AlertDialog(String.format("User %s failed to login 3 times", usercode));
         alertDialog.show(getSupportFragmentManager(), "Alert dialog");
     }
 
 
+    /**
+     * Adds a new user
+     * @param username username to add
+     */
     @Override
     public void applyNewUsername(String username) {
         addNewUser(username);
     }
 
+    /**
+     * Adds a new credential
+     * @param usercode usercode to update
+     * @param safenumber safe to update
+     */
     @Override
     public void applyNewCredential(int usercode, int safenumber) {
         addCredential(usercode, safenumber);
     }
 
+    /**
+     * Removes a user
+     * @param usercode user to remove
+     */
     @Override
     public void applyRemoveUser(int usercode) {
         removeUser(usercode);
     }
 
+    /**
+     * Removes a credential
+     * @param usercode user to remove credential for
+     * @param safenumber safe to remove access to
+     */
     @Override
     public void applyRemoveCredential(int usercode, int safenumber) {
         removeCredential(usercode, safenumber);
     }
 
+    /**
+     * Removes credential for safe number
+     * @param usercode user to remove credential for
+     * @param safenumber safe to remove access to
+     */
     private void removeCredential(int usercode, int safenumber) {
         if(users.size() == 0) {
             Toast.makeText(this, String.format("Something went wrong, no users found"), Toast.LENGTH_LONG).show();
@@ -228,6 +293,10 @@ public class AdminControls extends AppCompatActivity implements UsernameDialog.U
         Toast.makeText(this, String.format("User %s was not found", usercode), Toast.LENGTH_LONG).show();
     }
 
+    /**
+     * Removes a user
+     * @param usercode user to remove
+     */
     private void removeUser(int usercode) {
         if(users.size() == 0) {
             Toast.makeText(this, String.format("Something went wrong, no users found"), Toast.LENGTH_LONG).show();
@@ -243,6 +312,10 @@ public class AdminControls extends AppCompatActivity implements UsernameDialog.U
         Toast.makeText(this, String.format("User %s was not found", usercode), Toast.LENGTH_LONG).show();
     }
 
+    /**
+     * Adds a new user
+     * @param username user to add
+     */
     private void addNewUser(String username) {
         String id = databaseUsers.push().getKey();
         int usercode = generateNewUsercode();
@@ -253,11 +326,14 @@ public class AdminControls extends AppCompatActivity implements UsernameDialog.U
                 username, usercode), Toast.LENGTH_LONG).show();
     }
 
+    /**
+     * Checks for failed login attempts
+     */
     private void checkForFailedLogins() {
         for (User user: users) {
             if (user.getCredentials() != null) {
                 for (Credential c: user.getCredentials()) {
-                    if (c.getFailed_login_count() >= 3) {
+                    if (c.getFailed_login_count() >= MAX_FAIL_LOGIN_ATTEMPTS) {
                         openUserFailedAlertDialog(user.getUser_code());
 
                         c.resetLoginCount();
@@ -268,7 +344,9 @@ public class AdminControls extends AppCompatActivity implements UsernameDialog.U
         }
     }
 
-
+    /**
+     * Loads firebase database
+     */
     private void loadUserDatabase() {
         databaseUsers.addValueEventListener(new ValueEventListener() {
             @Override

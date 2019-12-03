@@ -11,14 +11,18 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+/**
+ * MainActivity is the starting class for application
+ * This class validates the login and proceeds to the admin controls
+ */
 public class MainActivity extends AppCompatActivity {
 
     private EditText username;
     private EditText password;
     private Button login;
 
-    private final String ADMIN_USERNAME = "a";
-    private String ADMIN_PASSWORD = "p";
+    private final String ADMIN_USERNAME = "admin";
+    private String ADMIN_PASSWORD = "pw";
 
 
     @Override
@@ -29,9 +33,6 @@ public class MainActivity extends AppCompatActivity {
         username = (EditText)findViewById(R.id.editUsername);
         password = (EditText)findViewById(R.id.editPassword);
         login = (Button) findViewById(R.id.btnLogin);
-
-        validateLogin(ADMIN_USERNAME, ADMIN_PASSWORD);
-
 
         login.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -44,6 +45,11 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    /**
+     * Validates the username and password combo
+     * @param un username to validate
+     * @param pw password to validate
+     */
     private void validateLogin(String un, String pw) {
         if(un.equals(ADMIN_USERNAME) && pw.equals(ADMIN_PASSWORD)) {
             Intent intent = new Intent(MainActivity.this, AdminControls.class);

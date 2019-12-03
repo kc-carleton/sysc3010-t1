@@ -1,17 +1,17 @@
 package com.example.safeapp;
 
 import android.app.Activity;
-import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
-import androidx.annotation.NonNull;
-
 import java.util.ArrayList;
 
+/**
+ * UserList defines the properties of a user list
+ */
 public class UserList extends ArrayAdapter<User> {
 
     private Activity context;
