@@ -8,9 +8,9 @@ import socket
 
 firebase = firebase.FirebaseApplication('https://sysc3010-t1.firebaseio.com/', None)
 kc_port = 10001
-dc_port = 5
+dc_port = 161
 kc_address = ''
-dc_address = ''
+safes_map = {"2": '10.1.1.2'}
 
 def check_database_authentication(user_cred):
    result = firebase.get('/users', None) 
@@ -51,10 +51,11 @@ def update_database_logs(user, safe, success):
 
     error = firebase.post('/safes/{}'.format(safe), update)
 
-def unlock_safe(socket, safe, thread_port):
-    command = udp_utils.create_command(True)
+def unlock_safe(socket, safe, thread_port, dc_address):
+    command, _ = udp_utils.create_command(True)
     udp_utils.send_pkt(socket, command, dc_address, dc_port)
     ack = wait_dc_ack(socket, safe, thread_port)
+    return ack
 
 def send_ack_kc(success):
     ack = udp_utils.create_ack(success)
@@ -95,15 +96,22 @@ def action_thread(safe, hashed_passcode, user_code, sender_port, sender_ip):
     success, user_name  = check_database_authentication({'user_code': user_code, 'hashed_passcode': hashed_passcode, 'safe': safe})
     update_database_logs(user_name, safe, success)
 
+    if(success and safes_map.get(safe) != None):
+        ack = unlock_safe(s, safe, thread_port, safes_map.get(safe))
+        print("Ack got back is: {}".format(ack))
+        if not ack:
+            success = False
+    
     ack_kc = udp_utils.create_ack(success)
     print("Created ack {}".format(ack_kc))
-
-    if(success):
-        unlock_safe(s, safe, thread_port)
 
     print("Sending to: address: {} port: {}".format(sender_ip, kc_port))
 
     udp_utils.send_pkt(s, ack_kc, sender_ip[0], kc_port)
+    
+    if(success and safes_map.get(safe) is not None):
+        wait_dc_ack(s, safe, thread_port)
+    print("Closed connection")
     s.close()
 
 class ActionThread(threading.Thread):
@@ -134,8 +142,8 @@ class PortListener:
         data, err = udp_utils.decode_data(buf)
         print("{} {}".format(data, err))
         if(data is None): # An error occurred
-            error_mes = udp_utils.create_error(err)
-            udp_utils.send_pkt(self.socket, error_mes, address[0], kc_port)
+            #error_mes = udp_utils.create_error(err)
+            #udp_utils.send_pkt(self.socket, error_mes, address[0], kc_port)
             ret = False
         return ret, data, address
 
