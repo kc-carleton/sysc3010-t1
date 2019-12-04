@@ -145,7 +145,7 @@ class PortListener:
         print("Got packet")
         data, err = udp_utils.decode_data(buf)
         print("{} {}".format(data, err))
-        if(address[0] is None):
+        if(address is None or address[0] is None):
             ret = False
         elif(data is None): # An error occurred
             error_mes = udp_utils.create_error(err)

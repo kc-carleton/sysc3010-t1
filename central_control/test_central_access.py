@@ -37,7 +37,7 @@ class TestAccessSystem(unittest.TestCase):
         ack = create_ack(success)
         n_receive_pkt.return_value = ack, ''
         
-        unlock_safe(1, 1)
+        unlock_safe(1, 1, 1, 1)
 
         return True
 
@@ -51,7 +51,7 @@ class TestAccessSystem(unittest.TestCase):
         ack = create_ack(success)
         n_receive_pkt.return_value = ack, ''
         
-        unlock_safe(1, 1)
+        unlock_safe(1, 1, 1,1)
 
         return True
 
@@ -63,7 +63,7 @@ class TestAccessSystem(unittest.TestCase):
         dec, err = decode_data(data)
         self.assertEqual(err, 'no_json_data')
 
-        n_receive_pkt.return_value = data, ''
+        n_receive_pkt.return_value = data, ('','')
         p = PortListener()
         p.get_json_data()
 
@@ -79,7 +79,7 @@ class TestAccessSystem(unittest.TestCase):
         dec, err = decode_data(data)
         self.assertEqual(err, 'incorrect_data_opcode')
         
-        n_receive_pkt.return_value = data, ''
+        n_receive_pkt.return_value = data, ('','')
         p = PortListener()
         p.get_json_data()
 
@@ -95,7 +95,7 @@ class TestAccessSystem(unittest.TestCase):
         dec, err = decode_data(data)
         self.assertEqual(err, 'no_null_termination')
         
-        n_receive_pkt.return_value = data, ''
+        n_receive_pkt.return_value = data, ('','')
         p = PortListener()
         p.get_json_data()
 
@@ -110,7 +110,7 @@ class TestAccessSystem(unittest.TestCase):
         dec, err = decode_data(None)
         self.assertEqual(err, 'empty_packet')
         
-        n_receive_pkt.return_value = data, ''
+        n_receive_pkt.return_value = data, ('','')
         p = PortListener()
         p.get_json_data()
 
@@ -125,7 +125,7 @@ class TestAccessSystem(unittest.TestCase):
         dec, err = decode_data(data)
         self.assertEqual(err, 'incorrect_json')
         
-        n_receive_pkt.return_value = data, ''
+        n_receive_pkt.return_value = data, ('','')
         p = PortListener()
         p.get_json_data()
 
@@ -141,7 +141,7 @@ class TestAccessSystem(unittest.TestCase):
         self.assertEqual(err, 'incorrect_ack_opcode')
 
         n_receive_pkt.return_value = ack, ''
-        wait_dc_ack(1, 1)
+        wait_dc_ack(1, 1, 1)
 
         self.assertEqual(n_send_pkt.call_count, 1)
         self.assertEqual(n_create_error.call_count, 1)
@@ -156,7 +156,7 @@ class TestAccessSystem(unittest.TestCase):
         self.assertEqual(err, 'no_null_termination')
 
         n_receive_pkt.return_value = ack, ''
-        wait_dc_ack(1, 1)
+        wait_dc_ack(1, 1, 1)
 
         self.assertEqual(n_send_pkt.call_count, 1)
         self.assertEqual(n_create_error.call_count, 1)
@@ -170,7 +170,7 @@ class TestAccessSystem(unittest.TestCase):
         self.assertEqual(err, 'no_command')
 
         n_receive_pkt.return_value = ack, ''
-        wait_dc_ack(1, 1)
+        wait_dc_ack(1, 1, 1)
 
         self.assertEqual(n_send_pkt.call_count, 1)
         self.assertEqual(n_create_error.call_count, 1)
@@ -184,7 +184,7 @@ class TestAccessSystem(unittest.TestCase):
         self.assertEqual(err, 'empty_packet')
 
         n_receive_pkt.return_value = ack, ''
-        wait_dc_ack(1, 1)
+        wait_dc_ack(1, 1, 1)
 
         self.assertEqual(n_send_pkt.call_count, 1)
         self.assertEqual(n_create_error.call_count, 1)
@@ -198,7 +198,7 @@ class TestAccessSystem(unittest.TestCase):
         self.assertEqual(err, 'inavlid_command')
 
         n_receive_pkt.return_value = ack, ''
-        wait_dc_ack(1, 1)
+        wait_dc_ack(1, 1, 1)
 
         self.assertEqual(n_send_pkt.call_count, 1)
         self.assertEqual(n_create_error.call_count, 1)
@@ -207,7 +207,7 @@ class TestAccessSystem(unittest.TestCase):
     @mock.patch('udp_utils.receive_pkt', return_value=(None,'socket timed out'))
     @mock.patch('udp_utils.create_error', return_value='x')
     def test_unreciprocated_command(self, n_send_pkt, n_receive_pkt, n_create_error):
-        wait_dc_ack(1,1)
+        wait_dc_ack(1,1, 1)
 
         self.assertEqual(n_send_pkt.call_count, 1)
         self.assertEqual(n_receive_pkt.call_count, 3)
