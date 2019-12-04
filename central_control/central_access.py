@@ -45,6 +45,8 @@ def update_database_logs(user, safe, success):
         return 
     update = {'user': user, 'access_time': datetime.datetime.now(), 'success': success}
 
+    print("Updating database logs with entry: {]".format(update))
+
     result = firebase.get('/safes', None)
     if result is None:
         result = {}
@@ -170,5 +172,3 @@ def main():
 if __name__ == '__main__':
     main()
 
-#print(check_database_authentication({'user_name':'michael', 'hashed_passcode': '3973', 'safe': 1}))
-#update_database_logs('phil', 2, True)
