@@ -106,7 +106,7 @@ def decode_command(encoded):
         return None, 'empty_packet'
     if len(encoded) == 0:
         return None, 'empty_packet'
-    if encoded.decode('utf-8')[-1] == '\0':
+    if encoded.decode('utf-8')[-1] != '\0':
         return None, 'no_null_termination'
 
     data_string = encoded.decode('utf-8')
