@@ -1,7 +1,8 @@
 package com.example.safeapp;
 
-import java.io.Serializable;
-
+/**
+ * Credential defines the properties of a safe credential
+ */
 public class Credential {
 
     private String hashed_passcode;

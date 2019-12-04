@@ -6,10 +6,12 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatDialogFragment;
 
+/**
+ * AlertDialog displays a dialog
+ */
 public class AlertDialog extends AppCompatDialogFragment {
 
     private TextView txtAlert;
@@ -19,6 +21,11 @@ public class AlertDialog extends AppCompatDialogFragment {
         this.text = text;
     }
 
+    /**
+     * Creates the dialog
+     * @param savedInstanceState
+     * @return built dialog
+     */
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(getActivity());

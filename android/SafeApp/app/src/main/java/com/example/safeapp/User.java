@@ -1,8 +1,10 @@
 package com.example.safeapp;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 
+/**
+ * User defines the properties of a user
+ */
 public class User {
 
     private String user_name;

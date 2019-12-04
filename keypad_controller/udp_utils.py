@@ -72,20 +72,21 @@ def create_ack(success):
 def decode_ack(encoded):
     if encoded is None or len(encoded) < 6:
         return None, 'empty_packet'
-    if encoded.decode('utf-8')[-1] != '\0':
+    if not (encoded.decode('utf-8')[-1] == '\0' or encoded.decode('utf-8')[-1] == '0'):
         return None, 'no_null_termination'
    
     data_string = encoded.decode('utf-8')
     opcode = data_string[:4]
     data = data_string[4:].split('\0')[0]
+    print("Data: {}".format(data))
 
     if opcode != PacketType.ACK.value:
         return None, 'incorrect_ack_opcode'
     if len(data) == 0:
         return None, 'no_command'
-    if data != 'True' and data != 'False':
+    if 'True' not in data and 'False' not in data:
         return None, 'inavlid_command'
-    if data == 'True':
+    if 'True' in data:
         return True ,''
     else:
         return False, ''
@@ -105,13 +106,13 @@ def decode_command(encoded):
         return None, 'empty_packet'
     if len(encoded) == 0:
         return None, 'empty_packet'
-    if encoded.decode('utf-8')[-1] != '\0':
+    if encoded.decode('utf-8')[-1] == '\0':
         return None, 'no_null_termination'
 
     data_string = encoded.decode('utf-8')
     opcode = data_string[:4]
     data = data_string[4:].split('\0')[0]
-    
+    print("Command packet, data is {} opcode is {}".format(data,opcode))
     if opcode != PacketType.COMMAND.value:
         return None, 'Not a COMMAND packet'
     if len(data) == 0:

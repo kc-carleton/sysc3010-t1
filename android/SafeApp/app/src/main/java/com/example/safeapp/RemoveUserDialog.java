@@ -12,6 +12,9 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatDialogFragment;
 
+/**
+ * RemoveUserDialog displays a dialog
+ */
 public class RemoveUserDialog extends AppCompatDialogFragment {
     private EditText editTextUsercode;
     private RemoveUserDialog.RemoveUserDialogListener listener;
@@ -21,6 +24,11 @@ public class RemoveUserDialog extends AppCompatDialogFragment {
         this.callerClass = callerClass;
     }
 
+    /**
+     * Creates the dialog
+     * @param savedInstanceState
+     * @return built dialog
+     */
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
@@ -58,6 +66,10 @@ public class RemoveUserDialog extends AppCompatDialogFragment {
         return builder.create();
     }
 
+    /**
+     * Attaches the listener for the class
+     * @param context
+     */
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
@@ -69,6 +81,9 @@ public class RemoveUserDialog extends AppCompatDialogFragment {
         }
     }
 
+    /**
+     * Applies the dialog operation
+     */
     public interface RemoveUserDialogListener {
         void applyRemoveUser(int usercode);
     }

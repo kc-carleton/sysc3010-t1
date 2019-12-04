@@ -12,6 +12,9 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatDialogFragment;
 
+/**
+ * UsernameDialog displays a dialog
+ */
 public class UsernameDialog extends AppCompatDialogFragment {
     private EditText editTextUsername;
     private UsernameDialogListener listener;
@@ -21,6 +24,10 @@ public class UsernameDialog extends AppCompatDialogFragment {
         this.callerClass = callerClass;
     }
 
+    /**
+     * Attaches the listener for the class
+     * @param context
+     */
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
@@ -32,6 +39,11 @@ public class UsernameDialog extends AppCompatDialogFragment {
         }
     }
 
+    /**
+     * Creates the dialog
+     * @param savedInstanceState
+     * @return built dialog
+     */
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
@@ -62,6 +74,9 @@ public class UsernameDialog extends AppCompatDialogFragment {
         return builder.create();
     }
 
+    /**
+     * Applies the dialog operation
+     */
     public interface UsernameDialogListener {
         void applyNewUsername(String username);
     }
