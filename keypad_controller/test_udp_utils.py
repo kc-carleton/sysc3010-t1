@@ -76,7 +76,7 @@ def test_decode_ack_1():
 
 def test_decode_ack_2():
     encoded = '0x02False\0'.encode()
-    expected_result = True, ''
+    expected_result = False, ''
     assert utils.decode_ack(encoded) == expected_result
 
 
@@ -129,7 +129,7 @@ def test_decode_command_1():
 
 
 def test_decode_command_2():
-    encoded = b'ABCDE\0\0'
+    encoded = b'ABCDE\0'
     expected_result = None, 'Not a COMMAND packet'
     assert utils.decode_command(encoded) == expected_result
 
