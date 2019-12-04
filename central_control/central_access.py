@@ -45,7 +45,7 @@ def update_database_logs(user, safe, success):
         return 
     update = {'user': user, 'access_time': datetime.datetime.now(), 'success': success}
 
-    print("Updating database logs with entry: {]".format(update))
+    print("Updating database logs with entry: {}".format(update))
 
     result = firebase.get('/safes', None)
     if result is None:
@@ -76,7 +76,9 @@ def wait_dc_ack(socket, safe, thread_port):
         buf, address = udp_utils.receive_pkt(socket, thread_port)
         if buf != None:
             break
-    if buf is None:
+    if address is None:
+        print("Timeout occured when waiting for DC")
+    elif buf is None:
         error_mes = udp_utils.create_error(address)
         udp_utils.send_pkt(socket, error_mes, address, dc_port)
     else:
@@ -96,7 +98,7 @@ def action_thread(safe, hashed_passcode, user_code, sender_port, sender_ip):
     s.bind(server_address)
 
     success, user_name  = check_database_authentication({'user_code': user_code, 'hashed_passcode': hashed_passcode, 'safe': safe})
-    update_database_logs(user_name, safe, success)
+    update_database_logs(user_code, safe, success)
 
     if(success and safes_map.get(safe) != None):
         ack = unlock_safe(s, safe, thread_port, safes_map.get(safe))
@@ -143,9 +145,14 @@ class PortListener:
         print("Got packet")
         data, err = udp_utils.decode_data(buf)
         print("{} {}".format(data, err))
-        if(data is None): # An error occurred
-            #error_mes = udp_utils.create_error(err)
-            #udp_utils.send_pkt(self.socket, error_mes, address[0], kc_port)
+        if(address[0] is None):
+            ret = False
+        elif(data is None): # An error occurred
+            error_mes = udp_utils.create_error(err)
+            try:
+                udp_utils.send_pkt(self.socket, error_mes, address[0], kc_port)
+            except:
+                pass
             ret = False
         return ret, data, address
 
