@@ -7,8 +7,6 @@ import json
 import socket
 import sys
 
-#kp = keypad()
-
 
 def read_keypad():
     '''Will read user inputs from the keypad and save them in a Python tuple. 
@@ -64,11 +62,12 @@ def set_LED(success):
     GPIO.setup(5, GPIO.OUT) # green LED
     GPIO.setup(6, GPIO.OUT) # red LED
 
-    #if success
+    #success is True so we set turn on green LED
     if success is True:
         GPIO.output(5, GPIO.HIGH)
         sleep(1)
         GPIO.output(5, GPIO.LOW)
+    #success was False so turn on red LED
     else:
         GPIO.output(6, GPIO.HIGH)
         sleep(1)
@@ -113,34 +112,38 @@ def convert_to_str(input_seq, seperator):
     return seperator.join([str(elem) for elem in input_seq])
 
 
-kc_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-kc_port = 10001
-as_port = 10010
-as_ip = '172.20.10.6'
-server_address = ('', kc_port)
-kc_socket.bind(server_address)
+def run_keypad():
+    kc_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    kc_port = 10001
+    as_port = 10010
+    as_ip = '172.20.10.10'
+    server_address = ('', kc_port)
+    kc_socket.bind(server_address)
 
-while True:
-    try:
-        creds = None
-        print('Creds set to {}'.format(creds))
-        
-        # Wait for user to enter all credentials in keypad
-        while creds == None or creds == (None, None, None):
-            creds = read_keypad()
-        print('Creds set to {}'.format(creds))
-        
-        # Credentials were entered, save and print them
-        user_code, hashed_passcode, safe_number = creds
-        print('UC:{} --- HP:{} --- SN:{}'.format(user_code, hashed_passcode, safe_number))
-        
-        send_user_data_udp(user_code, hashed_passcode, safe_number, as_ip, as_port, kc_socket)
-        print('Data sent')
-        ack, address = utils.receive_pkt(kc_socket, kc_port)
-        decoded_ack, err = utils.decode_ack(ack)
-        print('Received ACK: {} --- From {}'.format(decoded_ack, address))
-        set_LED(decoded_ack)
-    except KeyboardInterrupt:
-        print('\nQuitting application...')
-        sys.exit(0)
+    while True:
+        try:
+            creds = None
+            print('Creds set to {}'.format(creds))
+            
+            # Wait for user to enter all credentials in keypad
+            while creds == None or creds == (None, None, None):
+                creds = read_keypad()
+            print('Creds set to {}'.format(creds))
+            
+            # Credentials were entered, save and print them
+            user_code, hashed_passcode, safe_number = creds
+            print('UC:{} --- HP:{} --- SN:{}'.format(user_code, hashed_passcode, safe_number))
+            
+            send_user_data_udp(user_code, hashed_passcode, safe_number, as_ip, as_port, kc_socket)
+            print('Data sent')
+            ack, address = utils.receive_pkt(kc_socket, kc_port)
+            decoded_ack, err = utils.decode_ack(ack)
+            print('Received ACK: {} --- From {}'.format(decoded_ack, address))
+            set_LED(decoded_ack)
+        except KeyboardInterrupt:
+            print('\nQuitting application...')
+            sys.exit(0)
+
+
+run_keypad()
 

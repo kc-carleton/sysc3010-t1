@@ -36,6 +36,7 @@ void setup() {
 //  Serial.println("RUNNING HARDWARE TESTS...");
 //  run_all_tests();
 
+  Serial.println("Configuring Ethernet...");
   // initalize Udp communication
   if (Ethernet.begin(macAddress) == 0) {
     Serial.println("Failed to configure Ethernet using DHCP");
@@ -57,8 +58,8 @@ void setup() {
  */
 void loop() {
   // wait and receive UDP messages from AccessSystem
-  if (iter % 10 == 0) {
-    Serial.println("Listening for UDP Message");
+  if (iter % 100 == 0) {
+    Serial.println("Listening for UDP Message...");
   }
   int action = getUDPPacket();
   
