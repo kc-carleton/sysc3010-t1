@@ -33,8 +33,8 @@ void setup() {
   // set the deadbolt pin to be an output
   pinMode(deadboltPin, OUTPUT);
 
-//  Serial.println("RUNNING HARDWARE TESTS...");
-//  run_all_tests();
+  Serial.println("RUNNING HARDWARE TESTS...");
+  run_all_tests();
 
   Serial.println("Configuring Ethernet...");
   // initalize Udp communication
@@ -210,6 +210,9 @@ void run_all_tests() {
   delay(3000);
   Serial.println("TESTING DEADBOLT LOCK...");
   test_deadbolt_lock();
+  Serial.println();
+  Serial.println("ALL TESTS COMPLETE... BOOTING SYSTEM...");
+  Serial.println();
 }
 
 
