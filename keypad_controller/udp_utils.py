@@ -78,7 +78,6 @@ def decode_ack(encoded):
     data_string = encoded.decode('utf-8')
     opcode = data_string[:4]
     data = data_string[4:].split('\0')[0]
-    print("Data: {}".format(data))
 
     if opcode != PacketType.ACK.value:
         return None, 'incorrect_ack_opcode'
@@ -112,7 +111,6 @@ def decode_command(encoded):
     data_string = encoded.decode('utf-8')
     opcode = data_string[:4]
     data = data_string[4:].split('\0')[0]
-    print("Command packet, data is {} opcode is {}".format(data,opcode))
     if opcode != PacketType.COMMAND.value:
         return None, 'Not a COMMAND packet'
     if len(data) == 0:
