@@ -41,12 +41,14 @@ def check_database_authentication(user_cred):
            return False, user_cred.get('user_name')
        for i in range(len(credentials)):
            credential = credentials[i]
+           # Check if credentials match database
            if str(credential.get('hashed_passcode')) == str(user_cred.get('hashed_passcode')) and str(credential.get('safe')) == str(user_cred.get('safe')):
                failed_login_count = 0
                out = {'failed_login_count': failed_login_count, 'hashed_passcode': credential.get('hashed_passcode'), 'safe': credential.get('safe')}
                firebase.patch('/users/{}/credentials/{}'.format(key, i), out)
                return True, user_cred.get('user_name')
            else:
+               # If don't match, make sure user tried to access safe with incorrect passcode
                if(str(credential.get('safe')) == str(user_cred.get('safe'))):
                    failed_login_count = int(credential.get('failed_login_count')) + 1
                    out = {'failed_login_count': failed_login_count, 'hashed_passcode': credential.get('hashed_passcode'), 'safe': credential.get('safe')}
@@ -150,13 +152,14 @@ def wait_dc_ack(socket, safe, thread_port):
         Ack from Door Controller
     """
     ack = None
+    # Wait for ack from dc. Error occurs if timeout happens 3 times.
     for i in range(3):
         buf, address = udp_utils.receive_pkt(socket, thread_port)
         if buf != None:
             break
     if address is None:
         print("Timeout occured when waiting for DC")
-    elif buf is None:
+    elif buf is None: # Error
         error_mes = udp_utils.create_error(address)
         udp_utils.send_pkt(socket, error_mes, address, dc_port)
     else:
